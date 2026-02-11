@@ -1,0 +1,100 @@
+{
+  "name": "nthucscc-react",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "version": "2.0.2",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:app": "npm run -w frontend-app dev",
+    "build": "tsc -b && vite build",
+    "test": "vitest run",
+    "build:packages": "npm run -w @nthucscc/ui build || true",
+    "lint": "eslint .",
+    "lint:fix": "eslint --ext .ts,.tsx,.js,.jsx src --fix",
+    "format": "prettier --write \"**/*.{js,ts,tsx,jsx,json,css,md}\"",
+    "format:check": "prettier --check \"**/*.{js,ts,tsx,jsx,json,css,md}\"",
+    "type-check": "tsc --noEmit",
+    "ci": "npm run ci:check",
+    "ci:check": "npx tsc -b --verbose && npm run -w @nthucscc/utils build && npm run -w @nthucscc/ui build && npm run lint && npm run format:check",
+    "check:lines": "node scripts/check-line-count.js",
+    "check:i18n": "node scripts/check-i18n.cjs",
+    "prepare": "node -e \"if (process.env.CI !== 'true') { const { execSync } = require('child_process'); execSync('husky install', { stdio: 'inherit' }); }\"",
+    "preview": "vite preview",
+    "i18n:check": "npx ts-node packages/utils/src/i18n/check-missing-keys.ts",
+    "i18n:check-js": "node scripts/check-i18n.cjs",
+    "clean": "rm -rf dist .tsbuildinfo && find src -name '*.js' -not -name '*.config.js' -delete && find packages -name '*.js' -not -name '*.config.js' -delete"
+  },
+  "dependencies": {
+    "@headlessui/react": "^2.2.9",
+    "@heroicons/react": "^2.2.0",
+    "@types/react-router-dom": "^5.3.3",
+    "@xterm/addon-fit": "^0.10.0",
+    "@xterm/addon-webgl": "^0.18.0",
+    "@xterm/xterm": "^5.5.0",
+    "axios": "^1.13.2",
+    "clsx": "^2.1.1",
+    "i18next": "^25.7.3",
+    "js-yaml": "^4.1.1",
+    "monaco-editor": "^0.52.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-helmet-async": "^2.0.5",
+    "react-hot-toast": "^2.6.0",
+    "react-i18next": "^16.5.0",
+    "react-icons": "^5.5.0",
+    "react-monaco-editor": "^0.59.0",
+    "react-router": "^7.1.5",
+    "react-router-dom": "^7.7.1",
+    "tailwind-merge": "^3.3.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.19.0",
+    "@tailwindcss/postcss": "^4.1.14",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^24.7.2",
+    "@types/react": "^19.0.12",
+    "@types/react-dom": "^19.0.4",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.21",
+    "eslint": "^9.19.0",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "eslint-plugin-react-refresh": "^0.4.18",
+    "globals": "^15.14.0",
+    "husky": "^8.0.0",
+    "lint-staged": "^13.2.0",
+    "postcss": "^8.5.6",
+    "prettier": "^3.6.2",
+    "tailwindcss": "^4.1.13",
+    "tailwindcss-animate": "^1.0.7",
+    "typescript": "~5.7.2",
+    "typescript-eslint": "^8.22.0",
+    "vite": "^6.1.0",
+    "vite-plugin-svgr": "^4.3.0",
+    "vitest": "^4.0.16"
+  },
+  "lint-staged": {
+    "**/*.{js,ts,tsx,jsx}": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "**/*.{json,css,md}": [
+      "prettier --write"
+    ]
+  },
+  "overrides": {
+    "react-helmet-async": {
+      "react": "^16.8.0 || ^17 || ^18 || ^19"
+    },
+    "@react-jvectormap/core": {
+      "react": "^16.8.0 || ^17 || ^18 || ^19",
+      "react-dom": "^16.8.0 || ^17 || ^18 || ^19"
+    },
+    "@react-jvectormap/world": {
+      "react": "^16.8.0 || ^17 || ^18 || ^19",
+      "react-dom": "^16.8.0 || ^17 || ^18 || ^19"
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "type": "module",
+  "name": "@nthucscc/utils",
+  "version": "0.0.0",
+  "private": true,
+  "main": "../../build/utils/index.js",
+  "types": "../../build/utils/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "../../build/utils/index.d.ts",
+      "import": "../../build/utils/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "lint": "eslint . --ext .ts,.tsx",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "clean": "rm -rf dist .tsbuildinfo && find src -name '*.js' -delete && find src -name '*.d.ts' -delete"
+  },
+  "files": [
+    "dist"
+  ]
+}

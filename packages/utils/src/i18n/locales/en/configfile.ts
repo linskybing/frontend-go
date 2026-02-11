@@ -1,0 +1,20 @@
+export const configFile = {
+  configFile: {
+    editFile: 'Edit file',
+    destroyInstance: 'Destroy instance',
+    destroy: 'Destroy',
+    deleteFile: 'Delete file',
+    notFoundTitle: 'No config files found',
+    notFoundDesc: 'Click "Add Config" to get started.',
+    toggleResources: 'Toggle resources',
+    id: 'ID',
+    createdAt: 'Created At',
+    deployInstance: 'Deploy instance',
+    deploy: 'Deploy',
+    relatedResources: 'Related Resources',
+    noRelatedResources: 'No related resources',
+    notDeployed: 'This config file has not been deployed yet.',
+    noGeneralConfigs: 'No general workloads found',
+    noJobConfigs: 'No job workloads found',
+  },
+};

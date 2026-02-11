@@ -1,0 +1,13 @@
+{
+  "name": "@nthucscc/components-shared",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts",
+    "./auth/SignInForm": "./auth/SignInForm.tsx",
+    "./auth/SignUpForm": "./auth/SignUpForm.tsx",
+    "./auth/SignOutButton": "./auth/SignOutButton.tsx",
+    "./auth/ForgotPasswordForm": "./auth/ForgotPasswordForm.tsx"
+  }
+}

@@ -1,0 +1,50 @@
+/**
+ * Authentication and User-related translations
+ */
+export const auth = {
+  auth: {
+    login: {
+      title: 'Login',
+      subtitle: 'Enter your username and password to login!',
+      username: 'Username',
+      usernamePlaceholder: 'Enter your username',
+      password: 'Password',
+      passwordPlaceholder: 'Enter your password',
+      forgotPassword: 'Forgot password?',
+      submit: 'Login',
+      noAccount: "Don't have an account?",
+      signUp: 'Sign up',
+      backToDashboard: 'Back to Dashboard',
+      loginFailed: 'Login failed, please try again.',
+      pageTitle: 'Login | AI Platform',
+      pageDescription: 'This is the login page for AI Platform',
+    },
+    signOut: 'Sign out',
+    signIn: 'Sign in',
+    signup: {
+      title: 'Sign up',
+      subtitle: 'Enter your email and password to register!',
+      firstName: 'First name',
+      lastName: 'Last name',
+      username: 'Username',
+      usernamePlaceholder: 'Enter your username',
+      email: 'Email',
+      emailPlaceholder: 'Enter your email',
+      password: 'Password',
+      passwordPlaceholder: 'Enter your password',
+      submit: 'Register',
+      alreadyHaveAccount: 'Already have an account?',
+      signIn: 'Sign in',
+      validationMissingUsernamePassword: 'Please provide username and password.',
+      registerSuccess: 'Registration successful! Please sign in.',
+      registerFailed: 'Registration failed, please try again.',
+    },
+  },
+  user: {
+    profile: 'Profile',
+    signOut: 'Sign out',
+    login: 'Login',
+    editProfile: 'Edit Profile',
+    support: 'Support',
+  },
+} as const;

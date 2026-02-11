@@ -1,0 +1,12 @@
+{
+  "name": "frontend-app",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
+    "format": "prettier --write \"**/*.{js,ts,tsx,jsx,json,css,md}\"",
+    "preview": "vite preview"
+  }
+}

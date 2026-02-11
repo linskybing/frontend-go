@@ -1,0 +1,20 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "outDir": "../../build/ui",
+    "noEmit": false,
+    "tsBuildInfoFile": "../../.tsbuildinfo/ui.tsbuildinfo",
+    "baseUrl": ".",
+    "paths": {
+      "@nthucscc/ui": ["./src"],
+      "@nthucscc/ui/*": ["./src/*"],
+      "@nthucscc/utils": ["../utils/src"],
+      "@nthucscc/utils/*": ["../utils/src/*"]
+    }
+  },
+  "references": [{ "path": "../utils" }],
+  "include": ["src"]
+}

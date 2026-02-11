@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.app.json",
+  "compilerOptions": {
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "rootDir": "../../",
+    "outDir": "../../build/utils",
+    "noEmit": false,
+    "tsBuildInfoFile": "../../.tsbuildinfo/utils.tsbuildinfo"
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/locales/zh.ts", "../../src/pkg/types/**/*.ts"]
+}

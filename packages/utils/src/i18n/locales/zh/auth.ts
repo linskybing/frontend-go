@@ -1,0 +1,50 @@
+/**
+ * Authentication and User-related translations
+ */
+export const auth = {
+  auth: {
+    login: {
+      title: '登入',
+      subtitle: '輸入您的使用者名稱和密碼以登入！',
+      username: '使用者名稱',
+      usernamePlaceholder: '輸入您的使用者名稱',
+      password: '密碼',
+      passwordPlaceholder: '輸入您的密碼',
+      forgotPassword: '忘記密碼？',
+      submit: '登入',
+      noAccount: '還沒有帳號？',
+      signUp: '註冊',
+      backToDashboard: '返回儀表板',
+      loginFailed: '登入失敗，請重試。',
+      pageTitle: '登入 | AI 平台',
+      pageDescription: '這是 AI 平台的登入頁面',
+    },
+    signOut: '登出',
+    signIn: '登入',
+    signup: {
+      title: '註冊',
+      subtitle: '輸入您的電子郵件和密碼以註冊！',
+      firstName: '名字',
+      lastName: '姓氏',
+      username: '使用者名稱',
+      usernamePlaceholder: '輸入您的使用者名稱',
+      email: '電子郵件',
+      emailPlaceholder: '輸入您的電子郵件',
+      password: '密碼',
+      passwordPlaceholder: '輸入您的密碼',
+      submit: '註冊',
+      alreadyHaveAccount: '已經有帳號？',
+      signIn: '登入',
+      validationMissingUsernamePassword: '請填寫使用者名稱和密碼欄位。',
+      registerSuccess: '註冊成功！請登入。',
+      registerFailed: '註冊失敗，請重試。',
+    },
+  },
+  user: {
+    profile: '個人檔案',
+    signOut: '登出',
+    login: '登入',
+    editProfile: '編輯個人檔案',
+    support: '支援',
+  },
+} as const;
