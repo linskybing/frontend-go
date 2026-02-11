@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Dropdown } from '@nthucscc/ui';
 import { DropdownItem } from '@nthucscc/ui';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 import { useTranslation } from '@nthucscc/utils';
 
 export default function NotificationDropdown() {

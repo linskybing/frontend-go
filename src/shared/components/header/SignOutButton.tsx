@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router';
+import { useNavigate } from 'react-router-dom';
 import { logout } from '@/core/services/authService';
 import { useAuth } from '@/core/context/useAuth';
 import { useTranslation } from '@nthucscc/utils';
