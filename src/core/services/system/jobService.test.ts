@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { JOBS_URL, JOB_BY_ID_URL, JOB_LOGS_URL } from '@/core/config/url';
-import { getJob, getJobLogs, getJobs } from './jobService';
+import { JOBS_URL, JOB_BY_ID_URL } from '@/core/config/url';
+import { getJob, getJobs } from './jobService';
 import { fetchWithAuth } from '@/shared/utils/api';
 
 vi.mock('@/shared/utils/api', () => ({
@@ -26,13 +26,5 @@ describe('jobService', () => {
     const job = await getJob(2);
     expect(fetchWithAuth).toHaveBeenCalledWith(JOB_BY_ID_URL(2));
     expect(job).toEqual({ ID: 2, Name: 'single' });
-  });
-
-  it('normalizes log responses into string arrays', async () => {
-    const mockFetch = fetchWithAuth as unknown as ReturnType<typeof vi.fn>;
-    mockFetch.mockResolvedValue({ data: [{ Content: 'line1' }, { content: 'line2' }] });
-    const logs = await getJobLogs(3);
-    expect(fetchWithAuth).toHaveBeenCalledWith(JOB_LOGS_URL(3));
-    expect(logs).toEqual(['line1', 'line2']);
   });
 });

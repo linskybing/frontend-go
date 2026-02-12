@@ -6,8 +6,8 @@ import ManageImagesBadge from './ManageImagesBadge';
 type Props = {
   image: AllowedImage;
   selectedImages: Set<number>;
-  toggleImageSelect: (id: string) => void;
-  setDeleteId: (id: string | null) => void;
+  toggleImageSelect: (id: number) => void;
+  setDeleteId: (id: number | null) => void;
 };
 
 export default function ManageImagesRow({
@@ -37,7 +37,7 @@ export default function ManageImagesRow({
             </span>
           </div>
           <div className="col-span-2">
-            <ManageImagesBadge isGlobal={image.IsGlobal} projectId={image.ProjectID} />
+            <ManageImagesBadge isGlobal={image.IsGlobal} projectId={image.ProjectID ?? undefined} />
           </div>
           <div className="col-span-3 flex items-center justify-between">
             <ManageImagesStatusPill isPulled={image.IsPulled} />

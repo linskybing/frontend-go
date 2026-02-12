@@ -18,7 +18,7 @@
     "format:check": "prettier --check \"**/*.{js,ts,tsx,jsx,json,css,md}\"",
     "type-check": "tsc --noEmit",
     "ci": "npm run ci:check",
-    "ci:check": "npx tsc -b --verbose && npm run -w @nthucscc/utils build && npm run -w @nthucscc/ui build && npm run lint && npm run format:check",
+    "ci:check": "npm run -w @nthucscc/utils build && npm run -w @nthucscc/ui build && npx tsc -b --verbose --force && npm run lint && npm run format:check",
     "check:lines": "node scripts/check-line-count.js",
     "check:i18n": "node scripts/check-i18n.cjs",
     "prepare": "node -e \"if (process.env.CI !== 'true') { const { execSync } = require('child_process'); execSync('husky install', { stdio: 'inherit' }); }\"",

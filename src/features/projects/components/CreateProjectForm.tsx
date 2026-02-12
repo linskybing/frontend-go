@@ -225,7 +225,7 @@ const CreateProjectForm: React.FC<CreateProjectFormProps> = ({
               <Button
                 type="submit"
                 className="flex-1 px-6 py-2.5 text-base font-semibold bg-accent-600 text-white rounded-md hover:bg-violet-700 transition duration-150 focus:outline-none focus:ring-4 focus:ring-violet-500 focus:ring-opacity-50 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                disabled={loading || groupId === 0}
+                disabled={loading || !groupId}
               >
                 {loading ? (
                   <span className="flex items-center justify-center animate-pulse">

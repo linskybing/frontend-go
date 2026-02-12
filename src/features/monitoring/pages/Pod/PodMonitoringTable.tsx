@@ -14,7 +14,7 @@ import { PodList } from './PodList';
 import { PodLogsModal } from './PodLogsModal';
 
 export default function PodTables() {
-  const { messages, connectToNamespace, subscribeToPodLogs } = useGlobalWebSocket();
+  const { messages, subscribeToNamespaces, subscribeToPodLogs } = useGlobalWebSocket();
   const [podsData, setPodsData] = useState<NamespacePods>({});
   const { t } = useTranslation();
 
@@ -70,6 +70,9 @@ export default function PodTables() {
 
   // Namespace Connection Logic
   useEffect(() => {
+    let cleanup: (() => void) | undefined;
+    let cancelled = false;
+
     const connectUserNamespaces = async () => {
       const username = getUsername();
       if (!username || username === 'null') return;
@@ -90,19 +93,22 @@ export default function PodTables() {
           projects = await getProjectListByUser();
         }
 
-        projects.forEach((p) => {
-          connectToNamespace(`proj-${p.PID}-${username}`);
-        });
-
-        // Ensure discovered namespaces are also connected
-        Object.keys(podsData).forEach((ns) => connectToNamespace(ns));
+        if (cancelled) return;
+        cleanup = subscribeToNamespaces([
+          ...projects.map((p) => `proj-${p.PID}-${username}`),
+          ...Object.keys(podsData),
+        ]);
       } catch (err) {
         console.error('Namespace connection failed:', err);
       }
     };
 
     connectUserNamespaces();
-  }, [connectToNamespace, podsData]);
+    return () => {
+      cancelled = true;
+      if (cleanup) cleanup();
+    };
+  }, [subscribeToNamespaces, podsData]);
 
   // Process WebSocket Messages
   // Rebuild state from messages (Source of Truth) to correctly handle additions, updates, and deletions

@@ -1,8 +1,8 @@
-import { useState, useEffect, useContext } from 'react';
-import { useTranslation } from '@nthucscc/utils';
+import { useState, useEffect } from 'react';
+import { sanitizeK8sName, useTranslation } from '@nthucscc/utils';
 import { toast } from 'react-hot-toast';
 import { GroupPVCWithPermissions } from '@/core/interfaces/groupStorage';
-import { WebSocketContext } from '@/core/context/WebSocketContext';
+import { useGlobalWebSocket } from '@/core/context/hooks/useGlobalWebSocket';
 import type { ResourceMessage } from '@/core/context/ws-types';
 import {
   getMyGroupStorages,
@@ -16,29 +16,37 @@ import {
  */
 export const useGroupStorage = () => {
   const { t } = useTranslation();
-  const { connectToNamespace, messages } = useContext(WebSocketContext)!;
+  const { messages, subscribeToNamespaces } = useGlobalWebSocket();
   const [storages, setStorages] = useState<GroupPVCWithPermissions[]>([]);
   const [loading, setLoading] = useState(true);
   const [isActionLoading, setIsActionLoading] = useState<Record<string, boolean>>({});
 
   // Fetch storages
   useEffect(() => {
+    let cleanup: (() => void) | undefined;
+    let cancelled = false;
+
     const init = async () => {
       try {
         const data = await getMyGroupStorages();
+        if (cancelled) return;
         setStorages(data || []);
-        data.forEach((s) => {
-          if (s.namespace) connectToNamespace(s.namespace);
-        });
+        cleanup = subscribeToNamespaces(data.map((s) => s.namespace || ''));
       } catch (err: unknown) {
+        if (cancelled) return;
         const msg = err instanceof Error ? err.message : String(err);
         toast.error(msg || t('storage.errLoadList'));
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
+
     init();
-  }, [connectToNamespace, t]);
+    return () => {
+      cancelled = true;
+      if (cleanup) cleanup();
+    };
+  }, [subscribeToNamespaces, t]);
 
   // Handle actions
   const handleAction = async (storage: GroupPVCWithPermissions, action: 'start' | 'stop') => {
@@ -80,7 +88,8 @@ export const useGroupStorage = () => {
   };
 
   const getFileBrowserStatus = (namespace: string): 'online' | 'offline' => {
-    const nsMessages: ResourceMessage[] = (messages as any)[namespace] || [];
+    const safeNamespace = sanitizeK8sName(namespace || '');
+    const nsMessages: ResourceMessage[] = (messages as any)[safeNamespace] || [];
     const hasBrowser = nsMessages.some((m) => m.kind === 'Pod' && m.name?.includes('filebrowser'));
     return hasBrowser ? 'online' : 'offline';
   };

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from '@nthucscc/utils';
 import { PageMeta } from '@nthucscc/components-shared';
@@ -7,14 +7,13 @@ import { ChartBarIcon, Cog6ToothIcon, UsersIcon } from '@heroicons/react/24/outl
 // Services & Context
 import { getProjectById } from '@/core/services/projectService';
 import { getUsername } from '@/core/services/authService';
-import { useGlobalWebSocket } from '@/core/context/hooks/useGlobalWebSocket';
+import { useNamespaceMessages } from '@/core/context/hooks/useNamespaceMessages';
 import { Project } from '@/core/interfaces/project';
 
 // Components
 import { PageBreadcrumb } from '@nthucscc/ui';
 import MonitoringPanel from '@/features/monitoring/components/MonitoringPanel';
 import ConfigFilesTab from '../components/project/ConfigFilesTab';
-import ProjectJobs from './ProjectJobs';
 import ProjectImageManagement from '../components/ProjectImageManagement';
 import CreateFormModal from '@/features/forms/components/CreateFormModal';
 
@@ -23,15 +22,9 @@ export default function ProjectDetail() {
   const { id } = useParams<{ id?: string }>();
 
   // 1. WebSocket Integration
-  const { connectToNamespace, getNamespaceMessages } = useGlobalWebSocket();
   const username = getUsername();
-  const namespace = `proj-${id}-${username}`;
-
-  useEffect(() => {
-    if (namespace) connectToNamespace(namespace);
-  }, [namespace, connectToNamespace]);
-
-  const messages = getNamespaceMessages(namespace);
+  const namespace = useMemo(() => `proj-${id}-${username}`, [id, username]);
+  const { messages } = useNamespaceMessages(namespace);
 
   // 2. Project Data State
   const [project, setProject] = useState<Project | null>(null);
@@ -44,7 +37,7 @@ export default function ProjectDetail() {
     const fetchProject = async () => {
       try {
         setLoading(true);
-        const data = await getProjectById(parseInt(id));
+        const data = await getProjectById(id);
         setProject(data);
       } catch (err) {
         console.error(err);
@@ -73,7 +66,6 @@ export default function ProjectDetail() {
               label: t('project.detail.tab.configurations'),
               icon: Cog6ToothIcon,
             },
-            { id: 'jobs', label: 'Jobs', icon: ChartBarIcon },
             { id: 'images', label: 'Images', icon: ChartBarIcon },
           ].map((tab) => (
             <button
@@ -160,13 +152,6 @@ export default function ProjectDetail() {
 
         {/* --- Config Tab --- */}
         {activeTab === 'configurations' && <ConfigFilesTab project={project} />}
-
-        {/* --- Jobs Tab --- */}
-        {activeTab === 'jobs' && (
-          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-            <ProjectJobs projectId={project.PID} />
-          </div>
-        )}
 
         {/* --- Images Tab --- */}
         {activeTab === 'images' && (

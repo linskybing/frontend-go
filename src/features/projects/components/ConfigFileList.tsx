@@ -14,7 +14,7 @@ interface ConfigFileListProps {
   onDeleteInstance: (id: string) => void;
   actionLoading: boolean;
   canManage?: boolean;
-  projectId?: number;
+  projectId?: string;
 }
 
 type TabType = 'general' | 'job';

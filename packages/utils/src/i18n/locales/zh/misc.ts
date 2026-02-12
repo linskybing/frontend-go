@@ -14,6 +14,9 @@ export const misc = {
     requestChange: '請求變更',
     project: '專案',
     viewAll: '查看全部',
+    noNotifications: '沒有新通知。',
+    markAllAsRead: '標記為已讀',
+    clearAll: '清除所有通知',
     time: {
       '5min': '5 分鐘前',
       '8min': '8 分鐘前',

@@ -65,7 +65,7 @@ export default function SidebarMenu({
                   <>
                     <span className="ml-3 flex-1 text-left whitespace-nowrap">{t(nav.name)}</span>
                     <span
-                      className={`h-5 w-5 transition-transform duration-200 ${isMenuOpen ? `rotate-180 ${currentTheme.iconActive}` : 'text-gray-400'}`}
+                      className={`h-5 w-5 transition-transform duration-200 ${isMenuOpen ? `rotate-180 ${currentTheme.iconActive}` : currentTheme.iconInactive}`}
                     >
                       ▼
                     </span>

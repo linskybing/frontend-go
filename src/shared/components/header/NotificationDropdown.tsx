@@ -3,11 +3,13 @@ import { Dropdown } from '@nthucscc/ui';
 import { DropdownItem } from '@nthucscc/ui';
 import { Link } from 'react-router-dom';
 import { useTranslation } from '@nthucscc/utils';
+import useNotification from '@/core/context/useNotification'; // Import the new hook
 
 export default function NotificationDropdown() {
   const [isOpen, setIsOpen] = useState(false);
-  const [notifying, setNotifying] = useState(true);
   const { t } = useTranslation();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, clearNotifications } =
+    useNotification();
 
   function toggleDropdown() {
     setIsOpen(!isOpen);
@@ -17,31 +19,64 @@ export default function NotificationDropdown() {
     setIsOpen(false);
   }
 
-  const handleClick = () => {
-    toggleDropdown();
-    setNotifying(false);
-  };
+  const notificationItems =
+    notifications.length === 0 ? (
+      <li className="p-3 text-center text-gray-500 dark:text-gray-400">
+        {t('notification.noNotifications')}
+      </li>
+    ) : (
+      notifications.map((n) => (
+        <li key={n.id}>
+          <DropdownItem
+            onItemClick={() => {
+              markAsRead(n.id);
+              closeDropdown();
+            }}
+            className={`flex gap-3 rounded-lg border-b border-gray-100 p-3 px-4.5 py-3 dark:border-gray-800 ${n.isRead ? 'opacity-60' : 'hover:bg-gray-100 dark:hover:bg-white/5'}`}
+          >
+            <span className="relative block w-full h-10 rounded-full z-1 max-w-10">
+              <img
+                width={40}
+                height={40}
+                src="/images/user/user-02.jpg"
+                alt="User"
+                className="w-full overflow-hidden rounded-full"
+              />
+              {!n.isRead && (
+                <span className="absolute bottom-0 right-0 z-10 h-2.5 w-full max-w-2.5 rounded-full border-[1.5px] border-white bg-success-500 dark:border-gray-900"></span>
+              )}
+            </span>
 
-  const exampleNotifications = [
-    { name: 'Terry Franci', minsKey: 'notification.time.5min' },
-    { name: 'Alena Franci', minsKey: 'notification.time.8min' },
-    { name: 'Jocelyn Kenter', minsKey: 'notification.time.15min' },
-    { name: 'Brandon Philips', minsKey: 'notification.time.1hour' },
-  ];
+            <span className="block">
+              <span className="mb-1.5 block text-theme-sm text-gray-500 dark:text-gray-400 space-x-1">
+                <span className="font-medium text-gray-800 dark:text-white/90">{n.message}</span>
+                {/* <span className="font-medium text-gray-800 dark:text-white/90">
+                  {t('notification.project')} - Nganter App
+                </span> */}
+              </span>
+
+              <span className="flex items-center gap-2 text-gray-500 text-theme-xs dark:text-gray-400">
+                <span>{new Date(n.createdAt).toLocaleTimeString()}</span>
+                <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
+                <span>{new Date(n.createdAt).toLocaleDateString()}</span>
+              </span>
+            </span>
+          </DropdownItem>
+        </li>
+      ))
+    );
 
   return (
     <div className="relative">
       <button
         className="relative flex items-center justify-center text-gray-500 transition-colors bg-white border border-gray-200 rounded-full dropdown-toggle hover:text-gray-700 h-11 w-11 hover:bg-gray-100 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
-        onClick={handleClick}
+        onClick={toggleDropdown}
       >
-        <span
-          className={`absolute right-0 top-0.5 z-10 h-2 w-2 rounded-full bg-orange-400 ${
-            !notifying ? 'hidden' : 'flex'
-          }`}
-        >
-          <span className="absolute inline-flex w-full h-full bg-orange-400 rounded-full opacity-75 animate-ping"></span>
-        </span>
+        {unreadCount > 0 && (
+          <span className="absolute right-0 top-0.5 z-10 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs font-semibold text-white">
+            {unreadCount}
+          </span>
+        )}
         <svg
           className="fill-current"
           width="20"
@@ -89,50 +124,29 @@ export default function NotificationDropdown() {
         </div>
 
         <ul className="flex flex-col h-auto overflow-y-auto custom-scrollbar">
-          {exampleNotifications.map((n) => (
-            <li key={n.name}>
-              <DropdownItem
-                onItemClick={closeDropdown}
-                className="flex gap-3 rounded-lg border-b border-gray-100 p-3 px-4.5 py-3 hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-white/5"
-              >
-                <span className="relative block w-full h-10 rounded-full z-1 max-w-10">
-                  <img
-                    width={40}
-                    height={40}
-                    src="/images/user/user-02.jpg"
-                    alt="User"
-                    className="w-full overflow-hidden rounded-full"
-                  />
-                  <span className="absolute bottom-0 right-0 z-10 h-2.5 w-full max-w-2.5 rounded-full border-[1.5px] border-white bg-success-500 dark:border-gray-900"></span>
-                </span>
-
-                <span className="block">
-                  <span className="mb-1.5 block text-theme-sm text-gray-500 dark:text-gray-400 space-x-1">
-                    <span className="font-medium text-gray-800 dark:text-white/90">{n.name}</span>
-                    <span>{t('notification.requestChange')}</span>
-                    <span className="font-medium text-gray-800 dark:text-white/90">
-                      {t('notification.project')} - Nganter App
-                    </span>
-                  </span>
-
-                  <span className="flex items-center gap-2 text-gray-500 text-theme-xs dark:text-gray-400">
-                    <span>{t('notification.project')}</span>
-                    <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
-                    <span>
-                      {t(
-                        n.minsKey as
-                          | 'notification.time.5min'
-                          | 'notification.time.8min'
-                          | 'notification.time.15min'
-                          | 'notification.time.1hour',
-                      )}
-                    </span>
-                  </span>
-                </span>
-              </DropdownItem>
-            </li>
-          ))}
+          {notificationItems}
         </ul>
+
+        <div className="flex items-center justify-between gap-2 px-3 pb-3">
+          <button
+            onClick={() => {
+              markAllAsRead();
+              closeDropdown();
+            }}
+            className="text-theme-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+          >
+            {t('notification.markAllAsRead')}
+          </button>
+          <button
+            onClick={() => {
+              clearNotifications();
+              closeDropdown();
+            }}
+            className="text-theme-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+          >
+            {t('notification.clearAll')}
+          </button>
+        </div>
 
         <Link
           to="/"

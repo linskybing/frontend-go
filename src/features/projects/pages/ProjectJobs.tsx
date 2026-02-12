@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useGlobalWebSocket } from '@/core/context/hooks/useGlobalWebSocket';
+import { useNamespaceMessages } from '@/core/context/hooks/useNamespaceMessages';
 import { getUsername } from '@/core/services/authService'; // Needed to construct namespace
 import { LuRefreshCw, LuActivity } from 'react-icons/lu';
 import { useTranslation, sanitizeK8sName } from '@nthucscc/utils';
@@ -31,18 +32,20 @@ export default function ProjectJobs({ projectId }: ProjectJobsProps) {
   const itemsPerPage = 10;
 
   // Global WebSocket
-  const { messages, subscribeToPodLogs } = useGlobalWebSocket();
+  const { subscribeToPodLogs } = useGlobalWebSocket();
   const currentUsername = getUsername();
 
   // 1. Determine Target Namespace
   // Ideally, this matches the logic in ProjectDetail.tsx
-  const targetNamespace = useMemo(() => {
+  const rawNamespace = useMemo(() => {
     if (!projectId || !currentUsername) return '';
 
     const rawName = `proj-${projectId}-${currentUsername}`;
 
     return sanitizeK8sName(rawName);
   }, [projectId, currentUsername]);
+
+  const { namespace: targetNamespace, messages } = useNamespaceMessages(rawNamespace);
 
   // 2. Core Logic: Infer Jobs from WebSocket Pods
   // We filter the global message stream to include ONLY pods from this project's namespace

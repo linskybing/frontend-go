@@ -50,7 +50,7 @@ const JobLogModal: React.FC<JobLogModalProps> = ({
         >
           ×
         </button>
-        <h2 className="text-lg font-bold mb-2">Job Log: {job.Name}</h2>
+        <h2 className="text-lg font-bold mb-2">Job Log: {job.ID}</h2>
         <div className="flex items-center gap-2 mb-3 text-sm">
           <input
             className="flex-1 rounded border px-2 py-1 bg-gray-50 dark:bg-gray-800"

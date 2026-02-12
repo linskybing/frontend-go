@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from '@nthucscc/utils';
 import { Group } from '@/core/interfaces/group';
-import { User } from '@/core/interfaces/user';
 import { UserGroupUser } from '@/core/interfaces/userGroup';
 import { getGroupById } from '@/core/services/groupService';
-import { getUsers } from '@/core/services/userService';
 import {
   createUserGroup,
   getUsersByGroup,
@@ -17,7 +15,6 @@ export default function useGroupDetail(id: string) {
   const { t } = useTranslation();
   const [group, setGroup] = useState<Group | null>(null);
   const [groupUsers, setGroupUsers] = useState<UserGroupUser[]>([]);
-  const [allUsers, setAllUsers] = useState<User[]>([]);
   const [canManage, setCanManage] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -58,9 +55,9 @@ export default function useGroupDetail(id: string) {
       }
       try {
         setLoading(true);
-        const [groupData, usersData] = await Promise.all([getGroupById(id), getUsers()]);
+        const groupData = await getGroupById(id);
         setGroup(groupData);
-        setAllUsers(usersData);
+        // Removed getUsers() call - users can be invited by entering username directly
         await refetchGroupUsers();
       } catch (err) {
         setError(err instanceof Error ? err.message : t('groups.error.unknown'));
@@ -97,7 +94,6 @@ export default function useGroupDetail(id: string) {
   return {
     group,
     groupUsers,
-    allUsers,
     canManage,
     loading,
     error,

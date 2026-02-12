@@ -4,7 +4,7 @@ import { useTranslation } from '@nthucscc/utils';
 
 type Props = {
   images: AllowedImage[];
-  onRemove: (id: string) => void;
+  onRemove: (id: number) => void;
 };
 
 export default function ProjectImageList({ images, onRemove }: Props) {

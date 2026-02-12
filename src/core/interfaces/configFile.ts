@@ -1,8 +1,8 @@
 export interface ConfigFile {
-  CFID: number;
+  CFID: string;
   Filename: string;
   Content: string;
-  ProjectID: number;
+  ProjectID: string;
   CreatedAt: string;
 }
 

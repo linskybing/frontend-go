@@ -20,7 +20,7 @@ export default function UserFormDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [selectedProject, setSelectedProject] = useState<number | undefined>(undefined);
+  const [selectedProject, setSelectedProject] = useState<string | undefined>(undefined);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [success, setSuccess] = useState<string | null>(null);
@@ -101,7 +101,7 @@ export default function UserFormDashboard() {
     setError(null);
     try {
       await createForm({
-        project_id: selectedProject,
+        project_id: selectedProject ? Number(selectedProject) : undefined,
         title: title.trim(),
         description,
         tag: '',
@@ -182,7 +182,7 @@ export default function UserFormDashboard() {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         form={selectedForm}
-        currentUserId={getCurrentUserId()}
+        currentUserid={String(getCurrentUserId())}
       />
     </PageLayout>
   );

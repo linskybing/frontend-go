@@ -5,6 +5,7 @@ import AppHeader from './AppHeader';
 import Backdrop from './Backdrop';
 import AppSidebar from './AppSidebar';
 import { WebSocketProvider } from '../context/WebSocketContext';
+import { NotificationProvider } from '../context/NotificationProvider'; // Import NotificationProvider
 
 const LayoutContent: React.FC = () => {
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
@@ -33,7 +34,9 @@ const AppLayout: React.FC = () => {
   return (
     <SidebarProvider>
       <WebSocketProvider>
-        <LayoutContent />
+        <NotificationProvider>
+          <LayoutContent />
+        </NotificationProvider>
       </WebSocketProvider>
     </SidebarProvider>
   );

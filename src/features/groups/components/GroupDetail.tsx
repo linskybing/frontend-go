@@ -23,7 +23,6 @@ export default function GroupDetail() {
   const {
     group,
     groupUsers,
-    allUsers,
     canManage,
     loading,
     error,
@@ -89,7 +88,7 @@ export default function GroupDetail() {
       <InviteUserModal
         isOpen={isInviteModalOpen}
         onClose={() => setIsInviteModalOpen(false)}
-        users={allUsers.filter((u) => !groupUsers.some((gu) => gu.UID === u.UID))}
+        users={[]}
         onSubmit={async (formData: FormData) => {
           await handleInviteSubmit(formData);
           setIsInviteModalOpen(false);

@@ -11,10 +11,10 @@ const extractData = <T>(response: ApiResponse<T>): T => {
 };
 
 export interface AllowedImage {
-  id: string;
+  ID: number;
   Name: string;
   Tag: string;
-  ProjectID?: number;
+  ProjectID?: number | null;
   IsGlobal: boolean;
   CreatedAt: string;
   IsPulled: boolean;
@@ -68,14 +68,14 @@ export const getAllowedImages = async (projectId?: number): Promise<AllowedImage
       }
 
       return {
-        ID: img.ID || img.id || 0,
+        ID: Number(img.ID ?? img.id ?? 0),
         Name: normalizedName,
         Tag: normalizedTag || 'latest',
-        ProjectID: img.ProjectID || img.project_id,
+        ProjectID: img.ProjectID ?? img.project_id ?? null,
         IsGlobal: img.IsGlobal ?? img.is_global ?? false,
         CreatedAt: img.CreatedAt || img.created_at || '',
         IsPulled: img.IsPulled ?? img.is_pulled ?? false,
-      } as AllowedImage;
+      };
     });
   } catch (err) {
     return [];
@@ -83,7 +83,7 @@ export const getAllowedImages = async (projectId?: number): Promise<AllowedImage
 };
 
 export const addProjectImage = async (
-  projectid: string,
+  projectId: string,
   input: AddProjectImageInput,
 ): Promise<AllowedImage> => {
   try {
@@ -108,7 +108,7 @@ export const removeProjectImage = async (projectId: string, imageId: string): Pr
   }
 };
 
-export const deleteAllowedImage = async (id: string): Promise<void> => {
+export const deleteAllowedImage = async (id: string | number): Promise<void> => {
   try {
     await fetchWithAuth(`${API_BASE_URL}/images/allowed/${id}`, { method: 'DELETE' });
   } catch (err: unknown) {

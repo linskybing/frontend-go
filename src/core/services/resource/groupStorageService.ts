@@ -31,7 +31,7 @@ const extractData = <T>(response: ApiResponse<T>): T => {
   return response as T;
 };
 
-const GROUP_STORAGE_BASE_URL = `${API_BASE_URL}/groups`;
+const GROUP_STORAGE_BASE_URL = `${API_BASE_URL}/storage`;
 const STORAGE_BASE_URL = `${API_BASE_URL}/storage`;
 const K8S_BASE_URL = `${API_BASE_URL}/k8s`;
 
@@ -39,11 +39,11 @@ const K8S_BASE_URL = `${API_BASE_URL}/k8s`;
 
 /**
  * Get all storage for a specific group
- * GET /groups/{groupId}/storage
+ * GET /storage/group/{groupId}
  */
 export const getGroupStorages = async (groupId: string): Promise<GroupPVC[]> => {
   try {
-    const response = await fetchWithAuth(`${GROUP_STORAGE_BASE_URL}/${groupId}/storage`, {
+    const response = await fetchWithAuth(`${GROUP_STORAGE_BASE_URL}/group/${groupId}`, {
       method: 'GET',
     });
     return extractData<GroupPVC[]>(response);
@@ -54,7 +54,7 @@ export const getGroupStorages = async (groupId: string): Promise<GroupPVC[]> => 
 
 /**
  * Get current user's accessible group storages (with permissions)
- * GET /groups/my-storages
+ * GET /storage/my-storages
  */
 export const getMyGroupStorages = async (): Promise<GroupPVCWithPermissions[]> => {
   try {
@@ -71,7 +71,7 @@ export const getMyGroupStorages = async (): Promise<GroupPVCWithPermissions[]> =
 
 /**
  * Create new group storage
- * POST /groups/{groupId}/storage
+ * POST /storage/{groupId}/storage
  */
 export const createGroupStorage = async (
   groupId: string,
@@ -96,7 +96,7 @@ export const createGroupStorage = async (
 
 /**
  * Delete group storage
- * DELETE /groups/{groupId}/storage/{pvcId}
+ * DELETE /storage/{groupId}/storage/{pvcId}
  */
 export const deleteGroupStorage = async (groupId: string, pvcId: string): Promise<void> => {
   try {
@@ -259,7 +259,7 @@ export const getGroupStorageProxyUrl = async (groupId: string, pvcId: string): P
 
 /**
  * Start group storage FileBrowser
- * POST /groups/{groupId}/storage/{pvcId}/start
+ * POST /storage/{groupId}/storage/{pvcId}/start
  */
 export const startGroupFileBrowser = async (groupId: string, pvcId: string): Promise<void> => {
   try {
@@ -273,7 +273,7 @@ export const startGroupFileBrowser = async (groupId: string, pvcId: string): Pro
 
 /**
  * Stop group storage FileBrowser
- * DELETE /groups/{groupId}/storage/{pvcId}/stop
+ * DELETE /storage/{groupId}/storage/{pvcId}/stop
  */
 export const stopGroupFileBrowser = async (groupId: string, pvcId: string): Promise<void> => {
   try {
@@ -316,7 +316,7 @@ export const createPVCBinding = async (
  * GET /k8s/pvc-binding/project/{projectId}
  */
 export const listProjectPVCBindings = async (
-  projectid: string,
+  projectId: string,
 ): Promise<ProjectPVCBindingInfo[]> => {
   try {
     const response = await fetchWithAuth(`${K8S_BASE_URL}/pvc-binding/project/${projectId}`, {
@@ -332,7 +332,7 @@ export const listProjectPVCBindings = async (
  * Delete PVC binding
  * DELETE /k8s/pvc-binding/{bindingId}
  */
-export const deletePVCBinding = async (bindingid: string): Promise<void> => {
+export const deletePVCBinding = async (bindingId: string): Promise<void> => {
   try {
     await fetchWithAuth(`${K8S_BASE_URL}/pvc-binding/${bindingId}`, {
       method: 'DELETE',

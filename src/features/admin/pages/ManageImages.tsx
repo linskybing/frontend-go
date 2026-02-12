@@ -107,30 +107,66 @@ export default function ManageImages() {
   const loadImages = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await getAllowedImages();
-      setImages(data);
-      // Load failed jobs when loading images
-      const failed = await getFailedPullJobs(10);
-      setFailedJobs(failed);
-      // Load active pull jobs and reconnect to them
-      const active = await getActivePullJobs();
-      if (active.length > 0) {
-        const activeMap = new Map<string, PullJobStatus>();
-        active.forEach((job) => {
-          activeMap.set(job.job_id, {
-            job_id: job.job_id,
-            image: `${job.image_name}:${job.image_tag}`,
-            status: (job.status as 'pending' | 'pulling' | 'completed' | 'failed') || 'pending',
-            progress: job.progress,
-            message: job.message,
-            timestamp: job.updated_at,
-          });
-          // Reconnect to WebSocket for this job if still pulling
-          if (job.status === 'pending' || job.status === 'pulling') {
-            connectWebSocket(job.job_id);
+      // Load allowed images - gracefully handle 404 if endpoint unavailable
+      try {
+        const data = await getAllowedImages();
+        setImages(data);
+      } catch (imgErr: any) {
+        if (imgErr?.status === 404) {
+          if (import.meta.env.DEV) {
+            console.warn('Image service endpoints temporarily unavailable');
           }
-        });
-        setPullJobStatuses(activeMap);
+          setImages([]);
+        } else {
+          throw imgErr;
+        }
+      }
+      
+      // Load failed jobs - gracefully handle 404 if endpoint unavailable
+      try {
+        const failed = await getFailedPullJobs(10);
+        setFailedJobs(failed);
+      } catch (failErr: any) {
+        if (failErr?.status === 404) {
+          if (import.meta.env.DEV) {
+            console.warn('Failed pull jobs endpoint temporarily unavailable');
+          }
+          setFailedJobs([]);
+        } else {
+          throw failErr;
+        }
+      }
+      
+      // Load active pull jobs - gracefully handle 404 if endpoint unavailable
+      try {
+        const active = await getActivePullJobs();
+        if (active && active.length > 0) {
+          const activeMap = new Map<string, PullJobStatus>();
+          active.forEach((job) => {
+            activeMap.set(job.job_id, {
+              job_id: job.job_id,
+              image: `${job.image_name}:${job.image_tag}`,
+              status: (job.status as 'pending' | 'pulling' | 'completed' | 'failed') || 'pending',
+              progress: job.progress,
+              message: job.message,
+              timestamp: job.updated_at,
+            });
+            // Reconnect to WebSocket for this job if still pulling
+            if (job.status === 'pending' || job.status === 'pulling') {
+              connectWebSocket(job.job_id);
+            }
+          });
+          setPullJobStatuses(activeMap);
+        }
+      } catch (activeErr: any) {
+        if (activeErr?.status === 404) {
+          if (import.meta.env.DEV) {
+            console.warn('Active pull jobs endpoint temporarily unavailable');
+          }
+          setPullJobStatuses(new Map());
+        } else {
+          throw activeErr;
+        }
       }
     } catch (err) {
       if (import.meta.env.DEV) {
@@ -163,7 +199,7 @@ export default function ManageImages() {
     };
   }, []);
 
-  const toggleImageSelect = (imageId: string) => {
+  const toggleImageSelect = (imageId: number) => {
     const newSelected = new Set(selectedImages);
     if (newSelected.has(imageId)) {
       newSelected.delete(imageId);

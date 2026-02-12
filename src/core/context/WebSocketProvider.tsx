@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { GET_NS_MONITORING_URL, JOBS_WS_URL, POD_LOGS_WS_URL } from '../config/url';
+import { GET_NS_MONITORING_URL, POD_LOGS_WS_URL } from '../config/url';
 import type { ResourceMessage } from './ws-types';
 import { WebSocketContext } from './websocket-context';
 import { sanitizeK8sName } from '@nthucscc/utils';
@@ -9,6 +9,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [messages, setMessages] = useState<ResourceMessage[]>([]);
 
   const sockets = useRef<Record<string, WebSocket>>({});
+  const namespaceSubscribers = useRef<Record<string, number>>({});
   const logWindows = useRef<Record<string, Window | null>>({});
   const podLogSockets = useRef<Record<string, WebSocket | undefined>>({});
   const podLogSubscribers = useRef<Record<string, Array<(line: string) => void>>>({});
@@ -75,53 +76,66 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     sockets.current[ns] = ws;
 
-    const jobsKey = '__jobs__';
-    if (!sockets.current[jobsKey]) {
+    // Jobs are inferred from namespace pod updates, no separate jobs websocket required.
+  }, []);
+
+  const connectToNamespaces = useCallback(
+    (namespaces: string[]) => {
+      const unique = Array.from(
+        new Set(
+          namespaces.map((ns) => sanitizeK8sName(ns)).filter((ns): ns is string => Boolean(ns)),
+        ),
+      );
+
+      unique.forEach((ns) => connectToNamespace(ns));
+    },
+    [connectToNamespace],
+  );
+
+  const disconnectFromNamespace = useCallback((rawNs: string) => {
+    const ns = sanitizeK8sName(rawNs);
+    if (!ns) return;
+
+    const ws = sockets.current[ns];
+    if (ws) {
       try {
-        const jobsWs = new WebSocket(JOBS_WS_URL());
-        jobsWs.onmessage = (event) => {
-          try {
-            const raw = JSON.parse(event.data);
-            const batch: ResourceMessage[] = Array.isArray(raw) ? raw : [raw];
-            if (batch.length === 0) return;
-
-            setMessages((prev) => {
-              const next = [...prev];
-              batch.forEach((msg) => {
-                if (!msg.kind || msg.kind.toLowerCase() !== 'job') return;
-                const key = `${msg.kind}-${msg.name}-${msg.ns}`;
-                const idx = next.findIndex((m) => `${m.kind}-${m.name}-${m.ns}` === key);
-
-                if (isDeletionEvent(msg)) {
-                  if (idx >= 0) next.splice(idx, 1);
-                  return;
-                }
-                if (idx >= 0) next[idx] = { ...next[idx], ...msg };
-                else next.push(msg);
-              });
-              return next.slice(-1000);
-            });
-          } catch (e) {
-            if (import.meta.env.DEV) console.error('[WS Pool] Parse error on jobs feed:', e);
-          }
-        };
-
-        jobsWs.onclose = () => delete sockets.current[jobsKey];
-        jobsWs.onerror = () => {
-          try {
-            jobsWs.close();
-          } catch (_e) {
-            /* ignore close errors */
-          }
-          delete sockets.current[jobsKey];
-        };
-
-        sockets.current[jobsKey] = jobsWs;
-      } catch (e) {
-        if (import.meta.env.DEV) console.error('[WS Pool] Failed to open jobs websocket', e);
+        ws.close();
+      } catch (_e) {
+        /* ignore close errors */
       }
+      delete sockets.current[ns];
     }
   }, []);
+
+  const subscribeToNamespaces = useCallback(
+    (namespaces: string[]) => {
+      const unique = Array.from(
+        new Set(
+          namespaces.map((ns) => sanitizeK8sName(ns)).filter((ns): ns is string => Boolean(ns)),
+        ),
+      );
+
+      unique.forEach((ns) => {
+        const current = namespaceSubscribers.current[ns] || 0;
+        namespaceSubscribers.current[ns] = current + 1;
+        if (current === 0) connectToNamespace(ns);
+      });
+
+      return () => {
+        unique.forEach((ns) => {
+          const current = namespaceSubscribers.current[ns] || 0;
+          const next = Math.max(0, current - 1);
+          if (next === 0) {
+            delete namespaceSubscribers.current[ns];
+            disconnectFromNamespace(ns);
+          } else {
+            namespaceSubscribers.current[ns] = next;
+          }
+        });
+      };
+    },
+    [connectToNamespace, disconnectFromNamespace],
+  );
 
   const getNamespaceMessages = useCallback(
     (rawNs: string) => {
@@ -256,6 +270,8 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       value={{
         messages,
         connectToNamespace,
+        connectToNamespaces,
+        subscribeToNamespaces,
         getNamespaceMessages,
         clearMessages,
         registerLogWindow,

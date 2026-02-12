@@ -6,9 +6,9 @@ type Props = {
   images: AllowedImage[];
   loading: boolean;
   selectedImages: Set<number>;
-  toggleImageSelect: (id: string) => void;
+  toggleImageSelect: (id: number) => void;
   toggleSelectAll: () => void;
-  setDeleteId: (id: string | null) => void;
+  setDeleteId: (id: number | null) => void;
   pulledCount: number;
   unPulledCount: number;
   handlePullSelected: () => Promise<void> | void;

@@ -1,7 +1,7 @@
 import ConfirmModal from './ConfirmModal';
 
 type Props = {
-  deleteid: string | null;
+  deleteId: number | null;
   onCancel: () => void;
   onConfirm: () => Promise<void> | void;
   processing: boolean;

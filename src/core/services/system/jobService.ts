@@ -1,4 +1,4 @@
-import { JOBS_URL, JOB_BY_ID_URL, JOB_LOGS_URL } from '@/core/config/url';
+import { JOBS_URL, JOB_BY_ID_URL } from '@/core/config/url';
 import { fetchWithAuth } from '@/shared/utils/api';
 
 type ApiResponse<T> = { code?: number; message?: string; data?: T };
@@ -45,23 +45,4 @@ export const getJob = async (id: string): Promise<Job> => {
   }
 };
 
-export const getJobLogs = async (id: string): Promise<string[]> => {
-  try {
-    const response = await fetchWithAuth(JOB_LOGS_URL(id));
-    const data = extractData<JobLog[]>(response);
-    if (Array.isArray(data)) {
-      return data
-        .map((log) => log.Content ?? (log as unknown as { content?: string }).content ?? '')
-        .filter(Boolean);
-    }
-    return [];
-  } catch (error: unknown) {
-    throw new Error(error instanceof Error ? error.message : 'Failed to fetch job logs.');
-  }
-};
-
-export interface JobLog {
-  ID: string;
-  JobID: string;
-  Content: string;
-}
+// Job logs are fetched via Pod logs websocket; REST logs endpoint is not available.

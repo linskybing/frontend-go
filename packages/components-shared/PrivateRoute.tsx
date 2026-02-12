@@ -5,10 +5,8 @@ const PrivateRoute = () => {
   const location = useLocation();
   const { isAuthenticated, loading } = useAuth();
   if (loading) {
-    console.log('PrivateRoute loading', { loading, isAuthenticated });
     return null; // or a spinner
   }
-  console.log('PrivateRoute state', { loading, isAuthenticated, pathname: location.pathname });
   return isAuthenticated ? (
     <Outlet />
   ) : (

@@ -14,6 +14,9 @@ export const misc = {
     requestChange: 'Request Change',
     project: 'Project',
     viewAll: 'View All',
+    noNotifications: 'No new notifications.',
+    markAllAsRead: 'Mark all as read',
+    clearAll: 'Clear all notifications',
     time: {
       '5min': '5 minutes ago',
       '8min': '8 minutes ago',

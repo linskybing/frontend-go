@@ -10,6 +10,11 @@ import { getUsername } from '@/core/services/authService';
 import { getProjectListByUser, getProjects } from '@/core/services/projectService';
 import { getGroupsByUser } from '@/core/services/userGroupService';
 import { Project } from '@/core/interfaces/project';
+import { ConfigFile } from '@/core/interfaces/configFile';
+import {
+  createInstance,
+  getConfigFilesByProjectId,
+} from '@/core/services/resource/configFileService';
 
 // Local imports
 import { InferredJob, JobPodMap, JobPod } from './types';
@@ -18,6 +23,18 @@ import { PodLogsModal } from '../Pod/PodLogsModal';
 
 const JobsLivePage: React.FC = () => {
   const [search, setSearch] = useState('');
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState('');
+  const [configFiles, setConfigFiles] = useState<ConfigFile[]>([]);
+  const [selectedConfigId, setSelectedConfigId] = useState('');
+  const [configFilesLoading, setConfigFilesLoading] = useState(false);
+  const [configFilesError, setConfigFilesError] = useState<string | null>(null);
+  const [submitType, setSubmitType] = useState<'job' | 'workflow'>('job');
+  const [submitState, setSubmitState] = useState({
+    loading: false,
+    error: null as string | null,
+    success: null as string | null,
+  });
 
   // Pod Log Modal State
   const [podLogsState, setPodLogsState] = useState({
@@ -28,48 +45,89 @@ const JobsLivePage: React.FC = () => {
   });
 
   // Global WebSocket Context
-  const { messages, connectToNamespace, subscribeToPodLogs } = useGlobalWebSocket();
+  const { messages, subscribeToNamespaces, subscribeToPodLogs } = useGlobalWebSocket();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const { t } = useTranslation();
+  const username = useMemo(() => getUsername() || '', []);
 
   // Namespace connection logic
   useEffect(() => {
-    const connectUserNamespaces = async () => {
-      const username = getUsername();
+    let cleanup: (() => void) | undefined;
+    let cancelled = false;
+
+    const loadUserProjects = async () => {
       if (!username || username === 'null') return;
 
       const userDataStr = localStorage.getItem('userData');
-      let projects: Project[] = [];
+      let nextProjects: Project[] = [];
 
       try {
         if (userDataStr) {
-          // Use cached user data and groups
           const { user_id: userId } = JSON.parse(userDataStr);
           const [allProjects, userGroups] = await Promise.all([
             getProjects(),
             getGroupsByUser(userId),
           ]);
           const userGroupIds = userGroups.map((g: { GID: any }) => g.GID);
-          projects = (allProjects || []).filter((p: Project) => userGroupIds.includes(p.GID));
+          nextProjects = (allProjects || []).filter((p: Project) => userGroupIds.includes(p.GID));
         } else {
-          // Fallback to API
-          projects = await getProjectListByUser();
+          nextProjects = await getProjectListByUser();
         }
 
-        // Connect to project namespaces
-        projects.forEach((p) => {
-          // Namespace format must match backend
-          const ns = `proj-${p.PID}-${username}`;
-          connectToNamespace(ns);
-        });
+        if (cancelled) return;
+        setProjects(nextProjects);
+        if (!selectedProjectId && nextProjects.length > 0) {
+          setSelectedProjectId(nextProjects[0].PID);
+        }
+
+        cleanup = subscribeToNamespaces(nextProjects.map((p) => `proj-${p.PID}-${username}`));
       } catch (err) {
-        console.error('Job Namespace connection failed:', err);
+        console.error('Job namespace connection failed:', err);
       }
     };
 
-    connectUserNamespaces();
-  }, [connectToNamespace]);
+    loadUserProjects();
+    return () => {
+      cancelled = true;
+      if (cleanup) cleanup();
+    };
+  }, [subscribeToNamespaces, selectedProjectId, username]);
+
+  useEffect(() => {
+    if (!selectedProjectId) {
+      setConfigFiles([]);
+      setSelectedConfigId('');
+      return;
+    }
+
+    let isMounted = true;
+    setConfigFilesLoading(true);
+    setConfigFilesError(null);
+
+    getConfigFilesByProjectId(selectedProjectId)
+      .then((files) => {
+        if (!isMounted) return;
+        setConfigFiles(files);
+        if (files.length > 0) {
+          setSelectedConfigId(String(files[0].CFID));
+        } else {
+          setSelectedConfigId('');
+        }
+      })
+      .catch((err) => {
+        if (!isMounted) return;
+        setConfigFilesError(err instanceof Error ? err.message : 'Failed to load templates.');
+      })
+      .finally(() => {
+        if (!isMounted) return;
+        setConfigFilesLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedProjectId]);
 
   // Infer jobs from pod messages
   const { jobPodMap, inferredJobs } = useMemo(() => {
@@ -204,39 +262,203 @@ const JobsLivePage: React.FC = () => {
     currentPage * itemsPerPage,
   );
 
+  const selectedProject = useMemo(
+    () => projects.find((p) => p.PID === selectedProjectId) || null,
+    [projects, selectedProjectId],
+  );
+
+  const namespacePreview = useMemo(() => {
+    if (!selectedProject || !username) return '';
+    return `proj-${selectedProject.PID}-${username}`;
+  }, [selectedProject, username]);
+
+  const selectedConfig = useMemo(
+    () => configFiles.find((cf) => String(cf.CFID) === selectedConfigId) || null,
+    [configFiles, selectedConfigId],
+  );
+
+  const handleSubmitTemplate = useCallback(async () => {
+    if (!selectedConfigId) {
+      setSubmitState({ loading: false, error: 'Select a template first.', success: null });
+      return;
+    }
+
+    setSubmitState({ loading: true, error: null, success: null });
+    try {
+      await createInstance(selectedConfigId);
+      setSubmitState({
+        loading: false,
+        error: null,
+        success: 'Submission queued. Track progress in the live job stream.',
+      });
+    } catch (err) {
+      setSubmitState({
+        loading: false,
+        error: err instanceof Error ? err.message : 'Failed to submit template.',
+        success: null,
+      });
+    }
+  }, [selectedConfigId]);
+
   return (
     <PageLayout title={t('page.jobs.title')} breadcrumb={t('page.jobs.title')}>
       <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-2">
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-accent-100 text-accent-600 rounded-lg dark:bg-accent-900/30 dark:text-accent-400">
-              <LuActivity className="w-5 h-5" />
+        <div className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-6">
+          <section className="rounded-2xl border border-gray-200/80 dark:border-gray-800 bg-gradient-to-br from-amber-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-900 dark:to-amber-900/20 p-4 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Submit</p>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  Launch a job or workflow
+                </h2>
+              </div>
+              <div className="flex rounded-full bg-white/80 dark:bg-gray-900/70 p-1 shadow-inner">
+                {(['job', 'workflow'] as const).map((type) => (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => setSubmitType(type)}
+                    className={`px-3 py-1 text-xs font-semibold rounded-full transition ${
+                      submitType === type
+                        ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900'
+                        : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                    }`}
+                  >
+                    {type === 'job' ? 'Job' : 'Workflow'}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div>
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                {t('page.jobs.activeJobsTitle')}
-              </h2>
-              <p className="text-xs text-gray-500">{t('page.jobs.description')}</p>
-            </div>
-          </div>
 
-          <div className="w-64">
-            <SearchInput
-              value={search}
-              onChange={setSearch}
-              placeholder={t('page.jobs.searchPlaceholder')}
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs font-semibold text-gray-600 dark:text-gray-300">
+                  Project
+                </label>
+                <div className="mt-1">
+                  <select
+                    className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+                    value={selectedProjectId}
+                    onChange={(e) => setSelectedProjectId(e.target.value)}
+                  >
+                    {projects.length === 0 && <option value="">No projects</option>}
+                    {projects.map((p) => (
+                      <option key={p.PID} value={p.PID}>
+                        {p.ProjectName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <p className="mt-2 text-xs text-gray-500">
+                  Namespace: <span className="font-mono">{namespacePreview || 'N/A'}</span>
+                </p>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-gray-600 dark:text-gray-300">
+                  Template
+                </label>
+                <div className="mt-1">
+                  <select
+                    className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+                    value={selectedConfigId}
+                    onChange={(e) => setSelectedConfigId(e.target.value)}
+                    disabled={configFilesLoading || configFiles.length === 0}
+                  >
+                    {configFilesLoading && <option value="">Loading templates...</option>}
+                    {!configFilesLoading && configFiles.length === 0 && (
+                      <option value="">No templates available</option>
+                    )}
+                    {configFiles.map((cf) => (
+                      <option key={cf.CFID} value={String(cf.CFID)}>
+                        {cf.Filename}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <p className="mt-2 text-xs text-gray-500">
+                  Use config files that include {submitType === 'job' ? 'Job' : 'Workflow'}
+                  resources.
+                </p>
+              </div>
+
+              {configFilesError && (
+                <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-600">
+                  {configFilesError}
+                </div>
+              )}
+
+              {selectedConfig && (
+                <div className="rounded-xl border border-gray-200/80 dark:border-gray-800 bg-white/70 dark:bg-gray-900/60 p-3">
+                  <p className="text-xs text-gray-500">Selected template</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                    {selectedConfig.Filename}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Created: {new Date(selectedConfig.CreatedAt).toLocaleString()}
+                  </p>
+                </div>
+              )}
+
+              {submitState.error && (
+                <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-600">
+                  {submitState.error}
+                </div>
+              )}
+
+              {submitState.success && (
+                <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-700">
+                  {submitState.success}
+                </div>
+              )}
+
+              <button
+                type="button"
+                className="w-full rounded-lg bg-gray-900 text-white py-2 text-sm font-semibold shadow hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={handleSubmitTemplate}
+                disabled={submitState.loading || !selectedConfigId}
+              >
+                {submitState.loading ? 'Submitting...' : 'Submit template'}
+              </button>
+            </div>
+          </section>
+
+          <section className="space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-accent-100 text-accent-600 rounded-lg dark:bg-accent-900/30 dark:text-accent-400">
+                  <LuActivity className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                    {t('page.jobs.activeJobsTitle')}
+                  </h2>
+                  <p className="text-xs text-gray-500">{t('page.jobs.description')}</p>
+                </div>
+              </div>
+
+              <div className="w-full sm:w-64">
+                <SearchInput
+                  value={search}
+                  onChange={(value) => {
+                    setSearch(value);
+                    setCurrentPage(1);
+                  }}
+                  placeholder={t('page.jobs.searchPlaceholder')}
+                />
+              </div>
+            </div>
+
+            <JobTable
+              jobs={pagedJobs}
+              jobPodMap={jobPodMap}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              onViewPodLog={handleViewPodLog}
             />
-          </div>
+          </section>
         </div>
-
-        <JobTable
-          jobs={pagedJobs}
-          jobPodMap={jobPodMap}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-          onViewPodLog={handleViewPodLog}
-        />
 
         <PodLogsModal
           open={podLogsState.open}

@@ -11,11 +11,11 @@ const extractData = <T>(response: ApiResponse<T>): T => {
 };
 
 export interface ImageRequest {
-  id: string;
-  Userid: string;
+  ID: string;
+  UserID: string;
   Name: string;
   Tag: string;
-  Projectid: string | null;
+  ProjectID: string | null;
   Status: string;
   Note: string;
   CreatedAt: string;
@@ -49,11 +49,14 @@ const parseResponse = (response: unknown): BackendImageRequest[] => {
 };
 
 const mapToImageRequest = (r: BackendImageRequest, defaultProjectId?: number): ImageRequest => ({
-  ID: r.ID ?? r.id ?? 0,
-  UserID: r.UserID ?? r.user_id ?? 0,
+  ID: String(r.ID ?? r.id ?? ''),
+  UserID: String(r.UserID ?? r.user_id ?? ''),
   Name: r.Name || r.name || r.ImageName || r.image_name || '',
   Tag: r.Tag || r.tag || 'latest',
-  ProjectID: r.ProjectID ?? r.project_id ?? defaultProjectId ?? null,
+  ProjectID:
+    (r.ProjectID ?? r.project_id ?? defaultProjectId ?? null)
+      ? String(r.ProjectID ?? r.project_id ?? defaultProjectId)
+      : null,
   Status: r.Status || r.status || 'pending',
   Note: r.Note || r.note || '',
   CreatedAt: r.CreatedAt || r.created_at || new Date().toISOString(),
@@ -93,7 +96,7 @@ export const getImageRequests = async (status?: string): Promise<ImageRequest[]>
 };
 
 export const getProjectImageRequests = async (
-  projectid: string,
+  projectId: string,
   status?: string,
 ): Promise<ImageRequest[]> => {
   const params = new URLSearchParams();
@@ -104,7 +107,7 @@ export const getProjectImageRequests = async (
       { method: 'GET' },
     );
     const rawData = parseResponse(response);
-    return rawData.map((r) => mapToImageRequest(r, projectId));
+    return rawData.map((r) => mapToImageRequest(r, Number(projectId)));
   } catch (err) {
     return [];
   }

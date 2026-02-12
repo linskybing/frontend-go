@@ -33,12 +33,14 @@ const JobCard: React.FC<JobCardProps> = ({ job, onViewLog }) => (
         {job.Status}
       </span>
     </div>
-    <div className="font-bold text-lg text-gray-800 dark:text-white line-clamp-1">{job.Name}</div>
-    <div className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">{job.Image}</div>
+    <div className="font-bold text-lg text-gray-800 dark:text-white line-clamp-1">Job {job.ID}</div>
+    <div className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
+      Template: {job.ConfigFileID}
+    </div>
     <div className="flex flex-wrap gap-2 mt-2 text-xs text-gray-400 dark:text-gray-500">
       <span>Namespace: {job.Namespace}</span>
       <span>Priority: {job.Priority}</span>
-      <span>Created: {new Date(job.CreatedAt).toLocaleDateString()}</span>
+      <span>Submitted: {new Date(job.SubmittedAt).toLocaleDateString()}</span>
     </div>
     <button
       className="mt-2 px-3 py-1 text-xs rounded bg-accent-600 text-white hover:bg-violet-700"

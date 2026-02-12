@@ -44,7 +44,7 @@ export default function GroupStoragePermissions({
     fetchPermissions();
   }, [fetchPermissions]);
 
-  const handleSetPermission = async (userid: string, permission: 'none' | 'read' | 'write') => {
+  const handleSetPermission = async (userId: string, permission: 'none' | 'read' | 'write') => {
     try {
       setIsActionLoading(true);
       await groupStorageService.setStoragePermission({
@@ -62,7 +62,7 @@ export default function GroupStoragePermissions({
     }
   };
 
-  const handleRevokePermission = async (userid: string) => {
+  const handleRevokePermission = async (userId: string) => {
     if (!window.confirm(t('storage.confirmRevoke'))) return;
     try {
       setIsActionLoading(true);

@@ -4,7 +4,7 @@ import { Project } from '@/core/interfaces/project';
 
 interface UserFormApplyProps {
   projects: Project[];
-  selectedProject: number | undefined;
+  selectedProject: string | undefined;
   setSelectedProject: (id: string | undefined) => void;
   title: string;
   setTitle: (t: string) => void;
@@ -41,7 +41,7 @@ const UserFormApply: React.FC<UserFormApplyProps> = ({
           <select
             value={selectedProject ?? ''}
             onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-              setSelectedProject(e.target.value ? Number(e.target.value) : undefined)
+              setSelectedProject(e.target.value || undefined)
             }
             className="w-full rounded border px-3 py-2 bg-white dark:bg-gray-700"
           >

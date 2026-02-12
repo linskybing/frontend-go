@@ -20,7 +20,7 @@ export default function FormDetailModal({
   isOpen,
   onClose,
   form,
-  currentUserId,
+  currentUserid,
 }: FormDetailModalProps) {
   const { t } = useTranslation();
   const [messages, setMessages] = useState<FormMessage[]>([]);
@@ -31,7 +31,7 @@ export default function FormDetailModal({
     if (!form) return;
     setLoadingMessages(true);
     try {
-      const msgs = await getFormMessages(form.ID);
+      const msgs = await getFormMessages(String(form.ID));
       setMessages(msgs);
     } catch (error: unknown) {
       console.error('Failed to load messages:', error);
@@ -50,7 +50,7 @@ export default function FormDetailModal({
     if (!form || !newMessage.trim()) return;
     setLoading(true);
     try {
-      const msg = await createFormMessage(form.ID, { content: newMessage.trim() });
+      const msg = await createFormMessage(String(form.ID), { content: newMessage.trim() });
       setMessages((prev) => [...prev, msg]);
       setNewMessage('');
     } catch (error: unknown) {
@@ -134,7 +134,7 @@ export default function FormDetailModal({
               <div className="text-center py-8 text-gray-500">{t('form.messages.empty')}</div>
             ) : (
               messages.map((msg) => {
-                const isMyMessage = msg.user_id === currentUserId;
+                const isMyMessage = String(msg.user_id) === String(currentUserid);
                 return (
                   <div
                     key={msg.id}

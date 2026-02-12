@@ -6,7 +6,7 @@ import { CheckIcon as CheckMarkIcon, ChevronUpDownIcon } from '@heroicons/react/
 // --- Interfaces & Data --- //
 
 interface User {
-  Uid: string;
+  UID: string;
   Username: string;
   // Added for avatar display
   avatar?: string;
@@ -77,6 +77,7 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ isOpen, onClose, user
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [selectedRole, setSelectedRole] = useState<'user' | 'admin' | 'manager'>('user');
   const [query, setQuery] = useState('');
+  const [usernameInput, setUsernameInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { t } = useTranslation();
@@ -95,14 +96,16 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ isOpen, onClose, user
   // --- Event Handlers --- //
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedUser) {
+    // Support both dropdown selection (if users list provided) and manual input
+    const userId = selectedUser?.UID || usernameInput.trim();
+    if (!userId) {
       setError(t('invite.selectUserError'));
       return;
     }
     setIsSubmitting(true);
     setError(null);
     try {
-      await onSubmit({ uid: selectedUser.UID, role: selectedRole });
+      await onSubmit({ uid: userId, role: selectedRole });
       handleClose(); // Close and reset on success
     } catch (err) {
       setError(err instanceof Error ? err.message : t('invite.unknownError'));
@@ -116,6 +119,7 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ isOpen, onClose, user
     setSelectedUser(null);
     setSelectedRole('user');
     setQuery('');
+    setUsernameInput('');
     setError(null);
     setIsSubmitting(false);
     onClose();
@@ -163,77 +167,92 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ isOpen, onClose, user
                 {t('invite.description')}
               </Dialog.Description>
 
-              {/* User Selection Combobox */}
+              {/* User Selection - Combobox or Text Input */}
               <div className="relative mt-4">
-                <Combobox value={selectedUser} onChange={setSelectedUser}>
-                  <Combobox.Label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {t('invite.userLabel')} <span className="text-red-500">*</span>
-                  </Combobox.Label>
-                  <div className="relative mt-1">
-                    <Combobox.Input
-                      className="w-full rounded-md border border-gray-300 bg-white py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 shadow-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                      displayValue={(user: User | null) => user?.Username || ''}
-                      onChange={(event) => setQuery(event.target.value)}
-                      placeholder={t('invite.userSearchPlaceholder')}
-                    />
-                    <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-2">
-                      <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                    </Combobox.Button>
-                  </div>
-                  <Transition
-                    as={Fragment}
-                    leave="transition ease-in duration-100"
-                    leaveFrom="opacity-100"
-                    leaveTo="opacity-0"
-                    afterLeave={() => setQuery('')}
-                  >
-                    <Combobox.Options className="absolute z-10 mt-1 max-h-52 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm dark:bg-gray-700">
-                      {filteredUsers.length === 0 && query !== '' ? (
-                        <div className="relative cursor-default select-none px-4 py-2 text-gray-700 dark:text-gray-300">
-                          {t('invite.noResults')}
-                        </div>
-                      ) : (
-                        filteredUsers.map((user) => (
-                          <Combobox.Option
-                            key={user.UID}
-                            value={user}
-                            className={({ active }) =>
-                              `relative cursor-pointer select-none py-2 pl-4 pr-4 ${active ? 'bg-accent-600 text-white' : 'text-gray-900 dark:text-white'}`
-                            }
-                          >
-                            {({ selected, active }) => (
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                  {/* [NEW] User Avatar */}
-                                  <div
-                                    style={{
-                                      backgroundColor: generateAvatarBgColor(user.Username),
-                                    }}
-                                    className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold text-white"
-                                  >
-                                    {user.Username.charAt(0).toUpperCase()}
+                {users.length > 0 ? (
+                  <Combobox value={selectedUser} onChange={setSelectedUser}>
+                    <Combobox.Label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {t('invite.userLabel')} <span className="text-red-500">*</span>
+                    </Combobox.Label>
+                    <div className="relative mt-1">
+                      <Combobox.Input
+                        className="w-full rounded-md border border-gray-300 bg-white py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 shadow-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                        displayValue={(user: User | null) => user?.Username || ''}
+                        onChange={(event) => setQuery(event.target.value)}
+                        placeholder={t('invite.userSearchPlaceholder')}
+                      />
+                      <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-2">
+                        <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                      </Combobox.Button>
+                    </div>
+                    <Transition
+                      as={Fragment}
+                      leave="transition ease-in duration-100"
+                      leaveFrom="opacity-100"
+                      leaveTo="opacity-0"
+                      afterLeave={() => setQuery('')}
+                    >
+                      <Combobox.Options className="absolute z-10 mt-1 max-h-52 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm dark:bg-gray-700">
+                        {filteredUsers.length === 0 && query !== '' ? (
+                          <div className="relative cursor-default select-none px-4 py-2 text-gray-700 dark:text-gray-300">
+                            {t('invite.noResults')}
+                          </div>
+                        ) : (
+                          filteredUsers.map((user) => (
+                            <Combobox.Option
+                              key={user.UID}
+                              value={user}
+                              className={({ active }) =>
+                                `relative cursor-pointer select-none py-2 pl-4 pr-4 ${active ? 'bg-accent-600 text-white' : 'text-gray-900 dark:text-white'}`
+                              }
+                            >
+                              {({ selected, active }) => (
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-3">
+                                    {/* [NEW] User Avatar */}
+                                    <div
+                                      style={{
+                                        backgroundColor: generateAvatarBgColor(user.Username),
+                                      }}
+                                      className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold text-white"
+                                    >
+                                      {user.Username.charAt(0).toUpperCase()}
+                                    </div>
+                                    <span
+                                      className={`block truncate ${selected ? 'font-semibold' : 'font-normal'}`}
+                                    >
+                                      {user.Username}
+                                    </span>
                                   </div>
-                                  <span
-                                    className={`block truncate ${selected ? 'font-semibold' : 'font-normal'}`}
-                                  >
-                                    {user.Username}
-                                  </span>
+                                  {selected && (
+                                    <span
+                                      className={`flex items-center ${active ? 'text-white' : 'text-accent-600'}`}
+                                    >
+                                      <CheckMarkIcon className="h-5 w-5" aria-hidden="true" />
+                                    </span>
+                                  )}
                                 </div>
-                                {selected && (
-                                  <span
-                                    className={`flex items-center ${active ? 'text-white' : 'text-accent-600'}`}
-                                  >
-                                    <CheckMarkIcon className="h-5 w-5" aria-hidden="true" />
-                                  </span>
-                                )}
-                              </div>
-                            )}
-                          </Combobox.Option>
-                        ))
-                      )}
-                    </Combobox.Options>
-                  </Transition>
-                </Combobox>
+                              )}
+                            </Combobox.Option>
+                          ))
+                        )}
+                      </Combobox.Options>
+                    </Transition>
+                  </Combobox>
+                ) : (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {t('invite.userLabel')} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={usernameInput}
+                      onChange={(e) => setUsernameInput(e.target.value)}
+                      placeholder="Enter username or user ID"
+                      className="mt-1 w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-sm leading-5 text-gray-900 shadow-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Role Selection RadioGroup */}
@@ -296,7 +315,7 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ isOpen, onClose, user
                 </button>
                 <button
                   type="submit"
-                  disabled={isSubmitting || !selectedUser}
+                  disabled={isSubmitting || (!selectedUser && !usernameInput.trim())}
                   className="inline-flex justify-center rounded-md bg-accent-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-accent-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {isSubmitting ? 'Inviting...' : 'Invite Member'}

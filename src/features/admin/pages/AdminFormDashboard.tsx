@@ -46,9 +46,9 @@ export default function AdminFormDashboard() {
     fetchTickets();
   }, [fetchTickets]);
 
-  const handleStatusChange = async (id: string, newStatus: FormStatus) => {
+  const handleStatusChange = async (id: number, newStatus: FormStatus) => {
     try {
-      await updateFormStatus(id, newStatus);
+      await updateFormStatus(String(id), newStatus);
       setTickets((prev) => prev.map((t) => (t.ID === id ? { ...t, status: newStatus } : t)));
     } catch (err) {
       alert(
@@ -213,7 +213,7 @@ export default function AdminFormDashboard() {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         form={selectedForm}
-        currentUserId={getCurrentUserId()}
+        currentUserid={String(getCurrentUserId())}
       />
     </PageLayout>
   );

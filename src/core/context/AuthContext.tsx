@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { API_BASE_URL, LOGOUT_URL } from '../config/url';
 import { fetchWithAuth } from '@/shared/utils/api';
 import { AuthContext } from './auth-context';
@@ -6,9 +6,44 @@ import { AuthContext } from './auth-context';
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [viewMode, setViewMode] = useState<'user' | 'admin'>(() => {
+    const stored = localStorage.getItem('viewMode');
+    return stored === 'admin' ? 'admin' : 'user';
+  });
   const initRef = React.useRef(false);
 
+  const switchViewMode = useCallback((mode: 'user' | 'admin', persist: boolean = true) => {
+    setViewMode(mode);
+    if (persist) {
+      localStorage.setItem('viewMode', mode);
+    } else {
+      localStorage.removeItem('viewMode');
+    }
+  }, []);
+
   useEffect(() => {
+    // Admin role check from localStorage
+    const userData = localStorage.getItem('userData');
+    if (userData) {
+      try {
+        const parsedData = JSON.parse(userData);
+        const roleValue = (
+          parsedData.role ||
+          parsedData.Role ||
+          (Array.isArray(parsedData.roles) ? parsedData.roles[0] : '')
+        )
+          .toString()
+          .toLowerCase();
+        const isSuperAdmin = parsedData.is_super_admin === true;
+        const isAdminLike = isSuperAdmin || roleValue === 'admin' || roleValue === 'manager';
+        setIsAdmin(isAdminLike);
+      } catch (e) {
+        console.error('Failed to parse userData from localStorage', e);
+        setIsAdmin(false);
+      }
+    }
+
     // At app root: check auth with backend.
     // If token exists in localStorage, validate it via Authorization header.
     // If no token, call backend with credentials included to allow cookie/session-based auth.
@@ -58,7 +93,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated, loading }}>
+    <AuthContext.Provider
+      value={{ isAuthenticated, setIsAuthenticated, loading, isAdmin, viewMode, switchViewMode }}
+    >
       {children}
     </AuthContext.Provider>
   );

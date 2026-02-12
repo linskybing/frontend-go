@@ -13,7 +13,6 @@ import { useTranslation } from '@nthucscc/utils';
 import { ThemeToggleButton } from '@nthucscc/components-shared';
 // import NotificationDropdown from '@/shared/components/header/NotificationDropdown';
 import UserDropdown from '@/shared/components/header/UserDropdown';
-import ViewModeSwitcher from '@/shared/components/header/ViewModeSwitcher';
 
 const LanguageButton: React.FC = () => {
   const { toggleLanguage, language } = useLanguage();
@@ -123,8 +122,6 @@ const AppHeader: React.FC = () => {
             <ThemeToggleButton />
             {/* Language button (single, notification-style) */}
             <LanguageButton />
-            {/* View Mode Switcher (Admin only) */}
-            <ViewModeSwitcher />
             {/* Notification dropdown */}
             {/* <NotificationDropdown /> */}
             {/* <!-- Notification Menu Area --> */}

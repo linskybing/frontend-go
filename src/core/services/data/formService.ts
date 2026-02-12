@@ -65,7 +65,7 @@ export const updateFormStatus = async (id: string, status: string): Promise<Form
 };
 
 export const createFormMessage = async (
-  formid: string,
+  formId: string,
   data: CreateFormMessageRequest,
 ): Promise<FormMessage> => {
   try {

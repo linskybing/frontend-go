@@ -12,7 +12,7 @@ export type StoragePermission = 'none' | 'read' | 'write';
 export interface GroupPVC {
   id: string; // Format: group-{gid}-{uuid}
   name: string;
-  groupId: number;
+  groupId: string;
   namespace: string;
   pvcName: string;
   size: string; // e.g., "100Gi"
@@ -20,7 +20,7 @@ export interface GroupPVC {
   storageClass: string;
   accessMode: string; // e.g., "ReadWriteMany"
   status: 'Pending' | 'Bound' | 'Lost' | 'Terminating';
-  createdBy: number;
+  createdBy: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -31,9 +31,9 @@ export interface GroupStoragePermission {
   groupId: string;
   pvcId: string;
   pvcName: string;
-  userId: number;
+  userId: string;
   permission: StoragePermission;
-  grantedBy: number;
+  grantedBy: string;
   grantedAt: string;
   updatedAt: string;
   revokedAt?: string;
@@ -42,11 +42,11 @@ export interface GroupStoragePermission {
 // Access policy for a group PVC
 export interface GroupStorageAccessPolicy {
   id: string;
-  groupId: number;
+  groupId: string;
   pvcId: string;
   defaultPermission: StoragePermission;
   adminOnly: boolean;
-  createdBy: number;
+  createdBy: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -61,45 +61,45 @@ export interface GroupPVCWithPermissions extends GroupPVC {
 // Request/Response DTOs
 
 export interface SetStoragePermissionRequest {
-  groupId: number;
+  groupId: string;
   pvcId: string;
-  userId: number;
+  userId: string;
   permission: StoragePermission;
 }
 
 export interface UserPermission {
-  userId: number;
+  userId: string;
   permission: StoragePermission;
 }
 
 export interface BatchSetPermissionsRequest {
-  groupId: number;
+  groupId: string;
   pvcId: string;
   permissions: UserPermission[];
 }
 
 export interface SetStorageAccessPolicyRequest {
-  groupId: number;
+  groupId: string;
   pvcId: string;
   defaultPermission: StoragePermission;
   adminOnly?: boolean;
 }
 
 export interface StoragePermissionInfo {
-  userId: number;
+  userId: string;
   username: string;
   permission: StoragePermission;
   canRead: boolean;
   canWrite: boolean;
-  grantedBy: number;
+  grantedBy: string;
   grantedAt: string;
 }
 
 // FileBrowser access request/response
 export interface FileBrowserAccessRequest {
-  groupId: number;
+  groupId: string;
   pvcId: string;
-  userId: number;
+  userId: string;
 }
 
 export interface FileBrowserAccessResponse {
@@ -133,7 +133,7 @@ export interface ProjectPVCBindingInfo {
 
 // Create group storage request
 export interface CreateGroupStorageRequest {
-  groupId: number;
+  groupId: string;
   name: string;
   capacity: number; // in Gi
   storageClass?: string;

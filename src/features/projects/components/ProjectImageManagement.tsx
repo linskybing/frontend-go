@@ -40,7 +40,7 @@ export default function ProjectImageManagement({ projectId }: ProjectImageManage
     try {
       setLoading(true);
       // console.log('Loading images for project:', projectId);
-      const data = await getAllowedImages(projectId);
+      const data = await getAllowedImages(Number(projectId));
       // console.log('Loaded images data:', data);
       setImages(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -109,7 +109,7 @@ export default function ProjectImageManagement({ projectId }: ProjectImageManage
         const req = await requestImage({
           name: formData.name,
           tag: formData.tag,
-          project_id: projectId,
+          project_id: Number(projectId),
         });
         // add the request to the project requests table (not the allowed images list)
         setRequests((prev) => [req, ...(prev || [])]);
@@ -127,10 +127,10 @@ export default function ProjectImageManagement({ projectId }: ProjectImageManage
     }
   };
 
-  const handleRemoveImage = async (imageId: string) => {
+  const handleRemoveImage = async (imageId: number) => {
     if (!confirm(t('project.images.confirmRemove'))) return;
     try {
-      await removeProjectImage(projectId, imageId);
+      await removeProjectImage(projectId, String(imageId));
       setImages((prev) => prev.filter((img) => img.ID !== imageId));
     } catch (err) {
       alert(t('project.images.removeError') + (err instanceof Error ? err.message : String(err)));

@@ -4,6 +4,8 @@ import type { ResourceMessage } from './ws-types';
 export interface WebSocketContextType {
   messages: ResourceMessage[];
   connectToNamespace: (namespace: string) => void;
+  connectToNamespaces: (namespaces: string[]) => void;
+  subscribeToNamespaces: (namespaces: string[]) => () => void;
   getNamespaceMessages: (namespace: string) => ResourceMessage[];
   clearMessages: () => void;
   registerLogWindow: (key: string, win: Window | null) => void;

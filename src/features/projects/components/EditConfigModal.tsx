@@ -2,16 +2,17 @@ import { useEffect, useState } from 'react';
 import MonacoEditor from 'react-monaco-editor';
 import { useTranslation } from '@nthucscc/utils';
 import { ConfigFile } from '@/core/interfaces/configFile';
-import { getPVCListByProject, checkUserStorageStatus } from '@/core/services/storageService';
+import { PVC } from '@/core/interfaces/pvc';
+import { checkMyUserStorageStatus } from '@/core/services/resource/storage';
 import { getMyGroupStorages } from '@/core/services/resource/groupStorageService';
 import { getUsername } from '@/core/services/authService';
 import { generateMultiDocYAML } from '@/features/projects/utils/k8sYamlGenerator';
+import { getProjectById } from '@/core/services/projectService';
 
 // Refactored Imports
 import { BaseModal } from '@nthucscc/ui';
 import ResourceWizard from './configfile/ResourceWizard';
 import { useConfigForm } from '@/shared/hooks/useConfigForm';
-import { PVC } from '@/core/interfaces/pvc';
 
 interface EditConfigModalProps {
   isOpen: boolean;
@@ -51,29 +52,30 @@ export default function EditConfigModal({
   // Load external data
   useEffect(() => {
     if (isOpen && selectedConfig) {
+      const projectPromise = getProjectById(selectedConfig.ProjectID).catch(() => null);
+
       Promise.all([
-        getPVCListByProject(selectedConfig.ProjectID).catch(() => []),
+        projectPromise,
         getMyGroupStorages().catch(() => []),
-        getUsername() ? checkUserStorageStatus(getUsername()!) : Promise.resolve(false),
-      ]).then(([projectStorages, allMyPvcs, storage]) => {
-        const projectStoragesArray = Array.isArray(projectStorages) ? projectStorages : [];
+        getUsername() ? checkMyUserStorageStatus() : Promise.resolve(false),
+      ]).then(([projInfo, allMyPvcs, storage]) => {
+        const groupId = projInfo?.GID;
         const pvcsArray = Array.isArray(allMyPvcs) ? allMyPvcs : [];
 
-        const convertedAllMyPvcs = pvcsArray.map((proj: any) => ({
-          name: proj.name || proj.pvcName || '',
-          namespace: proj.namespace || '',
-          size: String(proj.capacity ?? proj.Capacity ?? ''),
-          status: proj.status || '',
-        }));
+        const filtered = groupId
+          ? pvcsArray.filter((p: any) => String(p.groupId ?? p.group_id) === String(groupId))
+          : pvcsArray;
 
-        const merged = [
-          ...projectStoragesArray,
-          ...convertedAllMyPvcs.filter(
-            (pvc) => !projectStoragesArray.some((p) => p.name === pvc.name),
-          ),
-        ];
+        const converted = filtered
+          .map((p: any) => ({
+            name: p.pvcName || p.name || '',
+            namespace: p.namespace || '',
+            size: String(p.capacity ?? p.size ?? ''),
+            status: p.status || '',
+          }))
+          .filter((p) => p.name);
 
-        setGroupPvcs(merged);
+        setGroupPvcs(converted);
         setHasUserStorage(!!storage);
       });
     }

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useTranslation, LocaleKey } from '@nthucscc/utils';
 import {
   HomeIcon,
@@ -14,10 +14,9 @@ import {
   CircleStackIcon,
   PhotoIcon,
   ArrowPathIcon,
-  ShieldCheckIcon,
-  UserIcon,
 } from '@heroicons/react/24/outline';
 import { useSidebar } from '../context/hooks/useSidebar';
+import { useAuth } from '../context/useAuth'; // New import
 import SidebarMenu from './SidebarMenu';
 
 // --- Types ---
@@ -83,14 +82,15 @@ const adminItems: NavItem[] = [
 ];
 
 const AppSidebar: React.FC = () => {
-  const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
+  const { isExpanded, isMobileOpen, isHovered, setIsHovered, toggleMobileSidebar } = useSidebar();
+  const { isAdmin, viewMode, switchViewMode } = useAuth(); // Consume from AuthContext
   const location = useLocation();
-  const navigate = useNavigate();
   const { t } = useTranslation();
 
   const isActive = (path: string) => {
-    if (path === '/') return location.pathname === '/';
-    return location.pathname === path || location.pathname.startsWith(path + '/');
+    // Exact match only - no prefix matching to avoid overlaps
+    // (e.g., /admin should not match /admin/manage-groups)
+    return location.pathname === path;
   };
 
   // --- State ---
@@ -99,13 +99,6 @@ const AppSidebar: React.FC = () => {
   );
   const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>({});
   const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
-
-  const [viewMode, setViewMode] = useState<'user' | 'admin'>(() => {
-    const stored = localStorage.getItem('viewMode');
-    return stored === 'admin' ? 'admin' : 'user';
-  });
-  const [isAdmin, setIsAdmin] = useState(false);
-  const hasManuallySwitchedToUser = useRef(false);
 
   // --- Theme Configuration ---
   const themeConfig = {
@@ -117,56 +110,29 @@ const AppSidebar: React.FC = () => {
       iconInactive:
         'text-gray-400 group-hover:text-gray-600 dark:text-gray-500 dark:group-hover:text-gray-300',
       logoText: 'text-gray-900 dark:text-white',
-      sectionTitle: 'text-gray-400',
+      sectionTitle: 'text-gray-500 dark:text-gray-400',
       toggleButton:
         'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100 dark:bg-slate-800 dark:border-slate-700 dark:text-gray-300',
-      adminTag: 'bg-accent-50 text-accent-700 border border-accent-200',
-      badgeBg: 'bg-accent-100 text-accent-700',
+      adminTag: 'bg-accent-50 text-accent-700 border border-accent-200 dark:bg-accent-500/10 dark:text-accent-400 dark:border-accent-500/30',
+      badgeBg: 'bg-accent-100 text-accent-700 dark:bg-accent-500/10 dark:text-accent-400',
     },
     admin: {
       sidebarBg: 'bg-zinc-900 border-zinc-800 dark:bg-slate-950 dark:border-slate-900',
-      itemActive: 'bg-amber-500/15 text-amber-400',
-      itemHover: 'hover:bg-white/5 text-zinc-400',
-      iconActive: 'text-amber-400',
-      iconInactive: 'text-zinc-500 group-hover:text-zinc-300',
-      logoText: 'text-white',
-      sectionTitle: 'text-zinc-500',
-      toggleButton: 'bg-zinc-800 border-zinc-700 text-zinc-300 hover:bg-zinc-700',
-      adminTag: 'bg-amber-500/15 text-amber-400 border border-amber-500/30',
-      badgeBg: 'bg-amber-500/15 text-amber-400',
+      itemActive: 'bg-amber-500/15 text-amber-400 dark:bg-amber-500/15 dark:text-amber-400',
+      itemHover: 'hover:bg-white/5 text-zinc-400 dark:hover:bg-white/5 dark:text-zinc-400',
+      iconActive: 'text-amber-400 dark:text-amber-400',
+      iconInactive: 'text-zinc-500 group-hover:text-zinc-300 dark:text-zinc-500 dark:group-hover:text-zinc-300',
+      logoText: 'text-white dark:text-white',
+      sectionTitle: 'text-zinc-500 dark:text-zinc-500',
+      toggleButton: 'bg-zinc-800 border-zinc-700 text-zinc-300 hover:bg-zinc-700 dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-700',
+      adminTag: 'bg-amber-500/15 text-amber-400 border border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-400 dark:border-amber-500/30',
+      badgeBg: 'bg-amber-500/15 text-amber-400 dark:bg-amber-500/15 dark:text-amber-400',
     },
   };
 
   const currentTheme = themeConfig[viewMode];
 
   // --- Effects ---
-  useEffect(() => {
-    const userData = localStorage.getItem('userData');
-    if (userData) {
-      const parsedData = JSON.parse(userData);
-      const roleValue = (
-        parsedData.role ||
-        parsedData.Role ||
-        (Array.isArray(parsedData.roles) ? parsedData.roles[0] : '')
-      )
-        .toString()
-        .toLowerCase();
-      const isSuperAdmin = parsedData.is_super_admin === true;
-      const isAdminLike = isSuperAdmin || roleValue === 'admin' || roleValue === 'manager';
-
-      setIsAdmin(isAdminLike);
-
-      if (
-        isAdminLike &&
-        window.location.pathname.startsWith('/admin') &&
-        localStorage.getItem('viewMode') === null &&
-        !hasManuallySwitchedToUser.current
-      ) {
-        setViewMode('admin');
-      }
-    }
-  }, []);
-
   useEffect(() => {
     if (openSubmenu !== null) {
       const key = `${openSubmenu.type}-${openSubmenu.index}`;
@@ -201,9 +167,9 @@ const AppSidebar: React.FC = () => {
     >
       {/* --- Branding / Logo --- */}
       <div
-        className={`flex h-20 items-center ${!isExpanded && !isHovered ? 'lg:justify-center' : 'justify-start px-8'}`}
+        className={`flex h-20 items-center justify-between px-3 ${!isExpanded && !isHovered ? 'lg:justify-center' : 'lg:justify-start lg:px-8'}`}
       >
-        <Link to="/">
+        <Link to="/" className="flex-1">
           <div
             className="overflow-hidden transition-all duration-300"
             style={{ width: isExpanded || isHovered || isMobileOpen ? 'auto' : '2ch' }}
@@ -212,16 +178,21 @@ const AppSidebar: React.FC = () => {
               className={`text-xl font-bold whitespace-nowrap transition-colors ${currentTheme.logoText}`}
             >
               {t('brand.name')}
-              {viewMode === 'admin' && (isExpanded || isHovered || isMobileOpen) && (
-                <span
-                  className={`ml-2 text-xs font-bold px-2 py-0.5 rounded-full ${currentTheme.adminTag}`}
-                >
-                  Admin
-                </span>
-              )}
             </span>
           </div>
         </Link>
+        {/* Sidebar toggle button - visible on mobile when expanded */}
+        {isMobileOpen && (
+          <button
+            onClick={toggleMobileSidebar}
+            className="lg:hidden ml-2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            aria-label="Close sidebar"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
       </div>
 
       {/* --- Menu Links --- */}
@@ -276,38 +247,19 @@ const AppSidebar: React.FC = () => {
 
         {/* --- View Mode Switcher --- */}
         {isAdmin && (isExpanded || isHovered || isMobileOpen) && (
-          <div className="mt-auto px-5 pt-4">
+          <div className="mt-auto px-5 pt-4 pb-4">
             <button
               onClick={() => {
-                if (viewMode === 'user') {
-                  setViewMode('admin');
-                  localStorage.setItem('viewMode', 'admin');
-                } else {
-                  if (location.pathname.startsWith('/admin')) {
-                    hasManuallySwitchedToUser.current = true;
-                    localStorage.removeItem('viewMode');
-                    setViewMode('user');
-                    navigate('/');
-                  } else {
-                    setViewMode('user');
-                  }
-                }
+                switchViewMode(viewMode === 'admin' ? 'user' : 'admin');
               }}
-              className={`flex w-full items-center justify-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold transition-all duration-200 shadow-sm
+              className={`flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition-all duration-200 shadow-sm
                 ${currentTheme.toggleButton}
               `}
             >
-              {viewMode === 'user' ? (
-                <>
-                  <ShieldCheckIcon className="h-5 w-5" />
-                  <span>{t('view.toggleToAdmin')}</span>
-                </>
-              ) : (
-                <>
-                  <UserIcon className="h-5 w-5" />
-                  <span>{t('view.toggleToUser')}</span>
-                </>
-              )}
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              <span>{viewMode === 'admin' ? t('view.toggleToUser') : t('view.toggleToAdmin')}</span>
             </button>
           </div>
         )}

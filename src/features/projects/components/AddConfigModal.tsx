@@ -3,9 +3,10 @@ import MonacoEditor from 'react-monaco-editor';
 import { useTranslation } from '@nthucscc/utils'; // Assumed path
 import { Project } from '@/core/interfaces/project';
 import { PVC } from '@/core/interfaces/pvc';
-import { getPVCListByProject, checkUserStorageStatus } from '@/core/services/storageService';
+import { checkMyUserStorageStatus } from '@/core/services/resource/storage';
 import { getMyGroupStorages } from '@/core/services/resource/groupStorageService';
 import { getUsername } from '@/core/services/authService';
+import { getProjectById } from '@/core/services/projectService';
 import { generateMultiDocYAML } from '@/features/projects/utils/k8sYamlGenerator';
 
 // Shared Components & Hooks
@@ -20,7 +21,7 @@ interface AddConfigModalProps {
   onConfirm?: (data: { filename: string; raw_yaml: string }) => void;
   onCreate?: (data: { filename: string; raw_yaml: string }) => void;
   // accept either full project or just projectId
-  projectId?: number;
+  projectId?: string;
   project?: Project | null;
   loading?: boolean;
   actionLoading?: boolean;
@@ -67,50 +68,31 @@ export default function AddConfigModal({
       setError(null);
 
       // Read external data
-      const pid = project?.PID ?? projectId ?? 0;
+      const pid = project?.PID ?? projectId;
+      const projectPromise = pid ? getProjectById(pid).catch(() => null) : Promise.resolve(project);
+
       Promise.all([
-        // Get PVCs for this specific project
-        getPVCListByProject(pid).catch(() => []),
-        // Get all project/group storages the user has access to
+        projectPromise,
         getMyGroupStorages().catch(() => []),
-        // Check user storage
-        getUsername() ? checkUserStorageStatus(getUsername()!) : Promise.resolve(false),
-      ]).then(([projectStorages, allMyPvcs, storage]) => {
-        // Ensure both are arrays
-        const projectStoragesArray = Array.isArray(projectStorages) ? projectStorages : [];
+        getUsername() ? checkMyUserStorageStatus() : Promise.resolve(false),
+      ]).then(([projInfo, allMyPvcs, storage]) => {
+        const groupId = projInfo?.GID;
         const pvcsArray = Array.isArray(allMyPvcs) ? allMyPvcs : [];
 
-        // console.log('[AddConfigModal] Project Storages:', projectStoragesArray);
-        // console.log('[AddConfigModal] My Project/Group Storages:', pvcsArray);
+        const filtered = groupId
+          ? pvcsArray.filter((p: any) => String(p.groupId ?? p.group_id) === String(groupId))
+          : pvcsArray;
 
-        // Convert ProjectPVC to PVC format and merge
-        const convertedAllMyPvcs = pvcsArray
-          .map((proj: any) => {
-            const name =
-              proj.name ||
-              proj.pvcName ||
-              proj.pvc_name ||
-              (proj.namespace ? `pvc-${proj.namespace}` : '');
-            const size = String(proj.capacity ?? proj.Capacity ?? '');
-            return {
-              name,
-              namespace: proj.namespace || '',
-              size,
-              status: proj.status || '',
-            };
-          })
-          .filter((pvc: { name: string }) => pvc.name);
+        const converted = filtered
+          .map((p: any) => ({
+            name: p.pvcName || p.name || '',
+            namespace: p.namespace || '',
+            size: String(p.capacity ?? p.size ?? ''),
+            status: p.status || '',
+          }))
+          .filter((pvc: PVC) => pvc.name);
 
-        // console.log('[AddConfigModal] Converted PVCs:', convertedAllMyPvcs);
-
-        const merged = [
-          ...projectStoragesArray.filter((p) => p.name),
-          ...convertedAllMyPvcs.filter(
-            (pvc) => !projectStoragesArray.some((p) => p.name === pvc.name),
-          ),
-        ];
-        // console.log('[AddConfigModal] Merged PVCs:', merged);
-        setGroupPvcs(merged);
+        setGroupPvcs(converted);
         setHasUserStorage(!!storage);
       });
     }

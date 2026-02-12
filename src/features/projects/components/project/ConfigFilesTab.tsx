@@ -104,7 +104,7 @@ const ConfigFilesTab: React.FC<ConfigFilesTabProps> = ({ project }) => {
     }
   };
 
-  const handleDelete = async (configid: string) => {
+  const handleDelete = async (configId: string) => {
     if (!window.confirm(t('common.confirmDelete'))) return;
 
     setActionLoading(true);

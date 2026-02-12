@@ -45,7 +45,7 @@ const UserFormHistory: React.FC<UserFormHistoryProps> = ({
         </h3>
         <div className="flex items-center gap-2">
           <ViewModeToggle viewMode={viewMode} setViewMode={setViewMode} />
-          <SearchBar value={searchTerm} onChange={setSearchTerm} />
+          <SearchBar initialSearchTerm={searchTerm} onDebouncedChange={setSearchTerm} />
         </div>
       </div>
 

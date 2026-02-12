@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useContext } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from '@nthucscc/utils';
 import { toast } from 'react-hot-toast';
 import {
@@ -11,38 +11,36 @@ import {
 } from '@heroicons/react/24/outline';
 
 // Fix 1: Import ResourceMessage type interface
-import { WebSocketContext } from '@/core/context/WebSocketContext';
+import { useNamespaceMessages } from '@/core/context/hooks/useNamespaceMessages';
 import type { ResourceMessage } from '@/core/context/ws-types';
 import { getUsername } from '@/core/services/authService';
 import {
   openUserDrive,
   stopUserDrive,
-  checkUserStorageStatus,
+  checkMyUserStorageStatus,
   getUserHubProxyUrl,
-} from '@/core/services/storageService';
+} from '@/core/services/resource/storage';
+import { sanitizeK8sName } from '@nthucscc/utils';
 import { StatusBadge } from './StorageComponents';
 
 export const PersonalHub: React.FC = () => {
   const { t } = useTranslation();
-  const { connectToNamespace, getNamespaceMessages } = useContext(WebSocketContext)!;
-
   const [isRequesting, setIsRequesting] = useState(false);
   const [storageExists, setStorageExists] = useState<boolean | null>(null);
 
   const username = getUsername();
-  const safeUsername = username?.toLowerCase() || '';
+  const safeUsername = sanitizeK8sName(username || '');
   const personalNs = `user-${safeUsername}-storage`;
   const podPattern = `fb-hub-${safeUsername}`;
 
-  // 1. Check if Storage Exists & Connect WS
+  const { messages: nsMessages } = useNamespaceMessages(personalNs);
+
+  // 1. Check if Storage Exists
   useEffect(() => {
     if (safeUsername) {
-      connectToNamespace(personalNs);
-      checkUserStorageStatus(safeUsername).then(setStorageExists);
+      checkMyUserStorageStatus().then(setStorageExists);
     }
-  }, [safeUsername, personalNs, connectToNamespace]);
-
-  const nsMessages = getNamespaceMessages(personalNs);
+  }, [safeUsername]);
 
   // 2. Check Pod Status
   // Fix 2: Explicitly tell TypeScript that useMemo returns ResourceMessage or undefined
@@ -74,7 +72,7 @@ export const PersonalHub: React.FC = () => {
     try {
       await openUserDrive();
       toast.success(t('storage.msg.starting'));
-      const exists = await checkUserStorageStatus(safeUsername);
+      const exists = await checkMyUserStorageStatus();
       setStorageExists(exists);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -90,7 +88,7 @@ export const PersonalHub: React.FC = () => {
     try {
       await stopUserDrive();
       toast.success(t('storage.msg.stopping'));
-      const exists = await checkUserStorageStatus(safeUsername);
+      const exists = await checkMyUserStorageStatus();
       setStorageExists(exists);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);

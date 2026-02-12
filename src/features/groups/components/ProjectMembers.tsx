@@ -5,9 +5,7 @@ import {
   getGroupsByUser,
   createUserGroup,
 } from '@/core/services/userGroupService';
-import { getUsers } from '@/core/services/userService';
 import InviteUserModal, { FormData } from './InviteUserModal';
-import { User } from '@/core/interfaces/user';
 import { useTranslation } from '@nthucscc/utils';
 
 interface ProjectMembersProps {
@@ -16,7 +14,6 @@ interface ProjectMembersProps {
 
 const ProjectMembers: React.FC<ProjectMembersProps> = ({ groupId }) => {
   const [members, setMembers] = useState<UserGroupUser[]>([]);
-  const [availableUsers, setAvailableUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [canManage, setCanManage] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
@@ -46,27 +43,11 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ groupId }) => {
     }
   }, [groupId]);
 
-  const fetchAvailableUsers = useCallback(async () => {
-    try {
-      const allUsers = await getUsers();
-      // Filter out users who are already members
-      const memberIds = members.map((m) => m.UID);
-      const filtered = allUsers.filter((u) => !memberIds.includes(u.UID));
-      setAvailableUsers(filtered);
-    } catch (error: unknown) {
-      console.error('Failed to fetch users:', error);
-    }
-  }, [members]);
+  // Removed fetchAvailableUsers - users can be invited by entering username directly
 
   useEffect(() => {
     fetchMembers();
   }, [fetchMembers]);
-
-  useEffect(() => {
-    if (isInviteModalOpen) {
-      fetchAvailableUsers();
-    }
-  }, [isInviteModalOpen, fetchAvailableUsers]);
 
   const handleInvite = async (data: FormData) => {
     await createUserGroup({
@@ -146,7 +127,7 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ groupId }) => {
         <InviteUserModal
           isOpen={isInviteModalOpen}
           onClose={() => setIsInviteModalOpen(false)}
-          users={availableUsers}
+          users={[]}
           onSubmit={handleInvite}
         />
       )}

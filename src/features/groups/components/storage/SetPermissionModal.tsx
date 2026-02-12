@@ -35,19 +35,19 @@ export default function SetPermissionModal({
       return;
     }
 
-    const userIdNum = parseInt(userId);
-    if (isNaN(userIdNum) || userIdNum <= 0) {
+    const normalizedUserId = userId.trim();
+    if (!normalizedUserId) {
       setError(t('storage.invalidUserId'));
       return;
     }
 
-    if (currentPermissions.some((p) => p.userId === userIdNum)) {
+    if (currentPermissions.some((p) => p.userId === normalizedUserId)) {
       setError(t('storage.userAlreadyHasPermission'));
       return;
     }
 
     try {
-      await onSet(userIdNum, permission);
+      await onSet(normalizedUserId, permission);
       setUserId('');
       setPermission('read');
     } catch (err) {

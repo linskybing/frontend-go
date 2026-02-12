@@ -21,7 +21,6 @@ const ViewModeSwitcher: React.FC = () => {
         setIsAdmin(parsed && parsed.is_super_admin === true);
       } catch (err) {
         // If userData is corrupted, default to non-admin
-        // eslint-disable-next-line no-console
         console.warn('Failed to parse userData from localStorage', err);
         setIsAdmin(false);
       }

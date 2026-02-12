@@ -13,7 +13,7 @@ import {
 interface CreateFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  projectId?: number;
+  projectId?: string;
 }
 
 export default function CreateFormModal({ isOpen, onClose, projectId }: CreateFormModalProps) {
@@ -37,7 +37,7 @@ export default function CreateFormModal({ isOpen, onClose, projectId }: CreateFo
       await createForm({
         title,
         description,
-        project_id: projectId,
+        project_id: projectId ? Number(projectId) : undefined,
         tag: tag || type,
       });
       console.log('Form created successfully'); // Add logging instead of alert
