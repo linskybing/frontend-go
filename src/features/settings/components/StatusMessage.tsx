@@ -1,8 +1,5 @@
 import React from 'react';
-import {
-  CheckCircleIcon,
-  ExclamationCircleIcon,
-} from '@heroicons/react/24/outline';
+import { CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
 
 interface StatusMessageProps {
   type: 'idle' | 'loading' | 'success' | 'error';
@@ -18,8 +15,8 @@ const StatusMessage: React.FC<StatusMessageProps> = ({ type, message }) => {
         type === 'success'
           ? 'bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800'
           : type === 'error'
-          ? 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'
-          : 'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800'
+            ? 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'
+            : 'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800'
       }`}
     >
       {type === 'success' ? (
@@ -34,8 +31,8 @@ const StatusMessage: React.FC<StatusMessageProps> = ({ type, message }) => {
           type === 'success'
             ? 'text-emerald-800 dark:text-emerald-200'
             : type === 'error'
-            ? 'text-red-800 dark:text-red-200'
-            : 'text-blue-800 dark:text-blue-200'
+              ? 'text-red-800 dark:text-red-200'
+              : 'text-blue-800 dark:text-blue-200'
         }
       >
         {message}

@@ -1,15 +1,12 @@
 import { useState } from 'react';
 import { Button } from '@nthucscc/ui';
 import { XMarkIcon } from '@heroicons/react/24/outline';
+import { Group } from '@/core/interfaces/group';
 
 interface GroupStorageFormProps {
-  groups: any[];
+  groups: Group[];
   loading: boolean;
-  onSubmit: (data: {
-    groupId: string;
-    name: string;
-    capacity: string;
-  }) => void;
+  onSubmit: (data: { groupId: string; groupName: string; name: string; capacity: string }) => void;
   onCancel: () => void;
 }
 
@@ -21,13 +18,14 @@ export default function GroupStorageForm({
 }: GroupStorageFormProps) {
   const [formData, setFormData] = useState({
     groupId: '',
+    groupName: '',
     name: '',
     capacity: '10Gi',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.groupId || !formData.name || !formData.capacity) {
+    if (!formData.groupId || !formData.groupName || !formData.name || !formData.capacity) {
       alert('Please fill in all fields');
       return;
     }
@@ -56,7 +54,14 @@ export default function GroupStorageForm({
           </label>
           <select
             value={formData.groupId}
-            onChange={(e) => setFormData({ ...formData, groupId: e.target.value })}
+            onChange={(e) => {
+              const selected = groups.find((group) => group.GID === e.target.value);
+              setFormData({
+                ...formData,
+                groupId: e.target.value,
+                groupName: selected?.GroupName || '',
+              });
+            }}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-accent-500 focus:border-transparent"
           >
             <option value="">Select a group...</option>

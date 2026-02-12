@@ -113,7 +113,8 @@ const AppSidebar: React.FC = () => {
       sectionTitle: 'text-gray-500 dark:text-gray-400',
       toggleButton:
         'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100 dark:bg-slate-800 dark:border-slate-700 dark:text-gray-300',
-      adminTag: 'bg-accent-50 text-accent-700 border border-accent-200 dark:bg-accent-500/10 dark:text-accent-400 dark:border-accent-500/30',
+      adminTag:
+        'bg-accent-50 text-accent-700 border border-accent-200 dark:bg-accent-500/10 dark:text-accent-400 dark:border-accent-500/30',
       badgeBg: 'bg-accent-100 text-accent-700 dark:bg-accent-500/10 dark:text-accent-400',
     },
     admin: {
@@ -121,11 +122,14 @@ const AppSidebar: React.FC = () => {
       itemActive: 'bg-amber-500/15 text-amber-400 dark:bg-amber-500/15 dark:text-amber-400',
       itemHover: 'hover:bg-white/5 text-zinc-400 dark:hover:bg-white/5 dark:text-zinc-400',
       iconActive: 'text-amber-400 dark:text-amber-400',
-      iconInactive: 'text-zinc-500 group-hover:text-zinc-300 dark:text-zinc-500 dark:group-hover:text-zinc-300',
+      iconInactive:
+        'text-zinc-500 group-hover:text-zinc-300 dark:text-zinc-500 dark:group-hover:text-zinc-300',
       logoText: 'text-white dark:text-white',
       sectionTitle: 'text-zinc-500 dark:text-zinc-500',
-      toggleButton: 'bg-zinc-800 border-zinc-700 text-zinc-300 hover:bg-zinc-700 dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-700',
-      adminTag: 'bg-amber-500/15 text-amber-400 border border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-400 dark:border-amber-500/30',
+      toggleButton:
+        'bg-zinc-800 border-zinc-700 text-zinc-300 hover:bg-zinc-700 dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-700',
+      adminTag:
+        'bg-amber-500/15 text-amber-400 border border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-400 dark:border-amber-500/30',
       badgeBg: 'bg-amber-500/15 text-amber-400 dark:bg-amber-500/15 dark:text-amber-400',
     },
   };
@@ -189,7 +193,12 @@ const AppSidebar: React.FC = () => {
             aria-label="Close sidebar"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         )}
@@ -257,7 +266,12 @@ const AppSidebar: React.FC = () => {
               `}
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                />
               </svg>
               <span>{viewMode === 'admin' ? t('view.toggleToUser') : t('view.toggleToAdmin')}</span>
             </button>

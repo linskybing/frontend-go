@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react';
-import {
-  PlusIcon,
-  CheckCircleIcon,
-  ExclamationTriangleIcon,
-} from '@heroicons/react/24/outline';
+import { PlusIcon, CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { Button } from '@nthucscc/ui';
 import { groupStorageService } from '@/core/services/resource/groupStorageService';
 import { getGroups } from '@/core/services/groupService';
+import { getGroupsByUser } from '@/core/services/userGroupService';
 import { Group } from '@/core/interfaces/group';
 import { GroupPVCWithPermissions } from '@/core/interfaces/groupStorage';
+import { getUserId, isSuperAdmin } from '@/shared/utils/permissions';
 import GroupStorageForm from './GroupStorageForm';
 import GroupStorageList from './GroupStorageList';
 
@@ -20,7 +18,8 @@ export default function GroupStorageManagement() {
     text: string;
   } | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [groups, setGroups] = useState<Group[]>([]);
+  const [manageableGroups, setManageableGroups] = useState<Group[]>([]);
+  const [groupRoles, setGroupRoles] = useState<Record<string, 'admin' | 'manager' | 'user'>>({});
 
   useEffect(() => {
     loadStorages();
@@ -45,8 +44,38 @@ export default function GroupStorageManagement() {
 
   const loadGroups = async () => {
     try {
-      const data = await getGroups();
-      setGroups(data || []);
+      const allGroups = await getGroups();
+      const superAdmin = isSuperAdmin();
+
+      if (superAdmin) {
+        setManageableGroups(allGroups || []);
+        const roleMap: Record<string, 'admin' | 'manager' | 'user'> = {};
+        (allGroups || []).forEach((group) => {
+          roleMap[group.GID] = 'admin';
+        });
+        setGroupRoles(roleMap);
+        return;
+      }
+
+      const userId = getUserId();
+      if (!userId) {
+        setManageableGroups([]);
+        setGroupRoles({});
+        return;
+      }
+
+      const userGroups = await getGroupsByUser(userId);
+      const roleMap: Record<string, 'admin' | 'manager' | 'user'> = {};
+      userGroups.forEach((group) => {
+        roleMap[group.GID] = group.Role;
+      });
+      setGroupRoles(roleMap);
+
+      const filteredGroups = (allGroups || []).filter((group) => roleMap[group.GID]);
+      const manageable = filteredGroups.filter(
+        (group) => roleMap[group.GID] === 'admin' || roleMap[group.GID] === 'manager',
+      );
+      setManageableGroups(manageable);
     } catch (err) {
       const error = err as { message?: string };
       setMessage({
@@ -65,6 +94,7 @@ export default function GroupStorageManagement() {
 
   const handleCreate = async (formData: {
     groupId: string;
+    groupName: string;
     name: string;
     capacity: string;
   }) => {
@@ -80,6 +110,7 @@ export default function GroupStorageManagement() {
     setMessage(null);
     try {
       await groupStorageService.createGroupStorage(formData.groupId, {
+        groupName: formData.groupName,
         name: formData.name,
         capacity: capacityGi,
       });
@@ -101,9 +132,7 @@ export default function GroupStorageManagement() {
   };
 
   const handleDelete = async (groupId: string, pvcId: string) => {
-    if (
-      !window.confirm('Are you sure you want to delete this storage?')
-    ) {
+    if (!window.confirm('Are you sure you want to delete this storage?')) {
       return;
     }
 
@@ -169,7 +198,7 @@ export default function GroupStorageManagement() {
       {/* Create Form */}
       {showCreateForm && (
         <GroupStorageForm
-          groups={groups}
+          groups={manageableGroups}
           loading={loading}
           onSubmit={handleCreate}
           onCancel={() => setShowCreateForm(false)}
@@ -182,6 +211,9 @@ export default function GroupStorageManagement() {
           storages={storages}
           loading={loading}
           onDelete={handleDelete}
+          canManageForGroup={(groupId) =>
+            isSuperAdmin() || groupRoles[groupId] === 'admin' || groupRoles[groupId] === 'manager'
+          }
         />
       )}
     </div>

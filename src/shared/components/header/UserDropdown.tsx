@@ -119,7 +119,7 @@ export default function UserDropdown() {
             </DropdownItem>
           </li>
         </ul>
-        <SignOutButton 
+        <SignOutButton
           onClick={closeDropdown}
           className="w-full flex items-center justify-center px-3 py-2 font-medium text-gray-700 rounded-lg text-theme-sm hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
         />

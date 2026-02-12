@@ -134,6 +134,7 @@ export interface ProjectPVCBindingInfo {
 // Create group storage request
 export interface CreateGroupStorageRequest {
   groupId: string;
+  groupName: string;
   name: string;
   capacity: number; // in Gi
   storageClass?: string;

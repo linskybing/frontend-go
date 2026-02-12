@@ -121,7 +121,7 @@ export default function ManageImages() {
           throw imgErr;
         }
       }
-      
+
       // Load failed jobs - gracefully handle 404 if endpoint unavailable
       try {
         const failed = await getFailedPullJobs(10);
@@ -136,7 +136,7 @@ export default function ManageImages() {
           throw failErr;
         }
       }
-      
+
       // Load active pull jobs - gracefully handle 404 if endpoint unavailable
       try {
         const active = await getActivePullJobs();

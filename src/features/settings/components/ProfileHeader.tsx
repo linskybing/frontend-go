@@ -25,9 +25,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             <UserIcon className="w-10 h-10 text-accent-600 dark:text-accent-400" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-white mb-1">
-              {name || username || 'User'}
-            </h2>
+            <h2 className="text-2xl font-bold text-white mb-1">{name || username || 'User'}</h2>
             <p className="text-accent-100">{email}</p>
           </div>
         </div>

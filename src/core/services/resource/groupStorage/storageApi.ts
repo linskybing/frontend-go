@@ -68,6 +68,7 @@ export const createGroupStorage = async (
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         group_id: groupId,
+        group_name: request.groupName,
         name: request.name,
         capacity: request.capacity,
         storage_class: request.storageClass || 'longhorn',
