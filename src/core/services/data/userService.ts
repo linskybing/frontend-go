@@ -79,28 +79,21 @@ export const deleteUser = async (id: string): Promise<MessageResponse> => {
 
 export const getUserSettings = async (userId: string): Promise<UserSettings> => {
   try {
-    // TODO: Backend endpoint not yet implemented - using localStorage for now
-    // When backend is ready, uncomment the API call below
-    /*
-    const response = await fetchWithAuth(`/api/users/${userId}/settings`, {
+    const response = await fetchWithAuth(`/users/${userId}/settings`, {
       method: 'GET',
     });
     return extractData<UserSettings>(response);
-    */
-
-    // Temporary: Use localStorage
+  } catch (error: unknown) {
+    // Fallback to localStorage if backend is unreachable
     const storedSettings = localStorage.getItem(`userSettings_${userId}`);
     if (storedSettings) {
       return JSON.parse(storedSettings);
     }
-    // Return default settings if none exist
     return {
       theme: 'light',
       receiveNotifications: true,
       language: 'en',
     };
-  } catch (error: unknown) {
-    throw new Error(error instanceof Error ? error.message : 'Failed to fetch user settings.');
   }
 };
 
@@ -109,23 +102,17 @@ export const updateUserSettings = async (
   settings: Partial<UserSettings>,
 ): Promise<UserSettings> => {
   try {
-    // TODO: Backend endpoint not yet implemented - using localStorage for now
-    // When backend is ready, uncomment the API call below
-    /*
-    const response = await fetchWithAuth(`/api/users/${userId}/settings`, {
+    const response = await fetchWithAuth(`/users/${userId}/settings`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(settings),
     });
     return extractData<UserSettings>(response);
-    */
-
-    // Temporary: Use localStorage
+  } catch (error: unknown) {
+    // Fallback to localStorage if backend is unreachable
     const currentSettings = await getUserSettings(userId);
     const updatedSettings = { ...currentSettings, ...settings };
     localStorage.setItem(`userSettings_${userId}`, JSON.stringify(updatedSettings));
     return updatedSettings;
-  } catch (error: unknown) {
-    throw new Error(error instanceof Error ? error.message : 'Failed to update user settings.');
   }
 };

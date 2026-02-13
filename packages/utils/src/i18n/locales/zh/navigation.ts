@@ -18,6 +18,7 @@ export const navigation = {
     overview: '總覽',
     menu: '菜單',
     jobs: 'Jobs',
+    workflows: 'Workflows',
     ecommerce: '電子商務',
     manageImages: '管理映像檔',
     imageRequests: '映像檔申請',

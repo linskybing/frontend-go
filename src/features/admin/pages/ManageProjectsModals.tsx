@@ -50,6 +50,11 @@ export default function ManageProjectsModals({
       groupId={formState.groupId}
       gpuQuota={formState.gpuQuota}
       mpsMemory={formState.mpsMemory}
+      maxConcurrentJobsPerUser={formState.maxConcurrentJobsPerUser}
+      maxQueuedJobsPerUser={formState.maxQueuedJobsPerUser}
+      maxJobRuntimeSeconds={formState.maxJobRuntimeSeconds}
+      maxProjectUsers={formState.maxProjectUsers}
+      scheduleWindows={formState.scheduleWindows}
       loading={actionLoading}
       error={error}
       isOpen={isModalOpen}
@@ -58,6 +63,13 @@ export default function ManageProjectsModals({
       onDescriptionChange={formHandlers.onDescriptionChange}
       onGpuQuotaChange={formHandlers.onGpuQuotaChange}
       onMpsMemoryChange={formHandlers.onMpsMemoryChange}
+      onMaxConcurrentJobsPerUserChange={formHandlers.onMaxConcurrentJobsPerUserChange}
+      onMaxQueuedJobsPerUserChange={formHandlers.onMaxQueuedJobsPerUserChange}
+      onMaxJobRuntimeSecondsChange={formHandlers.onMaxJobRuntimeSecondsChange}
+      onMaxProjectUsersChange={formHandlers.onMaxProjectUsersChange}
+      onScheduleWindowChange={formHandlers.onScheduleWindowChange}
+      addScheduleWindow={formHandlers.addScheduleWindow}
+      removeScheduleWindow={formHandlers.removeScheduleWindow}
       onGroupIdChange={formHandlers.onGroupIdChange}
       onSubmit={handleCreateProject}
       availableGroups={availableGroups}
@@ -73,6 +85,11 @@ export default function ManageProjectsModals({
       gpuQuota={formState.gpuQuota}
       gpuAccess={formState.gpuAccess}
       mpsMemory={formState.mpsMemory}
+      maxConcurrentJobsPerUser={formState.maxConcurrentJobsPerUser}
+      maxQueuedJobsPerUser={formState.maxQueuedJobsPerUser}
+      maxJobRuntimeSeconds={formState.maxJobRuntimeSeconds}
+      maxProjectUsers={formState.maxProjectUsers}
+      scheduleWindows={formState.scheduleWindows}
       loading={actionLoading}
       error={error}
       isOpen={isEditModalOpen}
@@ -82,6 +99,13 @@ export default function ManageProjectsModals({
       onGpuQuotaChange={formHandlers.onGpuQuotaChange}
       onGpuAccessChange={formHandlers.onGpuAccessChange}
       onMpsMemoryChange={formHandlers.onMpsMemoryChange}
+      onMaxConcurrentJobsPerUserChange={formHandlers.onMaxConcurrentJobsPerUserChange}
+      onMaxQueuedJobsPerUserChange={formHandlers.onMaxQueuedJobsPerUserChange}
+      onMaxJobRuntimeSecondsChange={formHandlers.onMaxJobRuntimeSecondsChange}
+      onMaxProjectUsersChange={formHandlers.onMaxProjectUsersChange}
+      onScheduleWindowChange={formHandlers.onScheduleWindowChange}
+      addScheduleWindow={formHandlers.addScheduleWindow}
+      removeScheduleWindow={formHandlers.removeScheduleWindow}
       onSubmit={handleUpdateProject}
     />
   );

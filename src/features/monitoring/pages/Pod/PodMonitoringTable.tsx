@@ -1,6 +1,7 @@
 // PodMonitoringTable.tsx
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useGlobalWebSocket } from '@/core/context/hooks/useGlobalWebSocket';
+import { useNamespaceSubscriptions } from '@/core/context/hooks/useNamespaceSubscriptions';
 import { getUsername } from '@/core/services/authService';
 import { getProjectListByUser, getProjects } from '@/core/services/projectService';
 import { getGroupsByUser } from '@/core/services/userGroupService';
@@ -14,9 +15,11 @@ import { PodList } from './PodList';
 import { PodLogsModal } from './PodLogsModal';
 
 export default function PodTables() {
-  const { messages, subscribeToNamespaces, subscribeToPodLogs } = useGlobalWebSocket();
+  const { messages, subscribeToPodLogs } = useGlobalWebSocket();
   const [podsData, setPodsData] = useState<NamespacePods>({});
+  const [projects, setProjects] = useState<Project[]>([]);
   const { t } = useTranslation();
+  const username = useMemo(() => getUsername() || '', []);
 
   // Logs State
   const [logsState, setLogsState] = useState({
@@ -70,15 +73,13 @@ export default function PodTables() {
 
   // Namespace Connection Logic
   useEffect(() => {
-    let cleanup: (() => void) | undefined;
     let cancelled = false;
 
-    const connectUserNamespaces = async () => {
-      const username = getUsername();
+    const loadUserProjects = async () => {
       if (!username || username === 'null') return;
 
       const userDataStr = localStorage.getItem('userData');
-      let projects: Project[] = [];
+      let nextProjects: Project[] = [];
 
       try {
         if (userDataStr) {
@@ -88,27 +89,33 @@ export default function PodTables() {
             getGroupsByUser(userId),
           ]);
           const userGroupIds = userGroups.map((g: { GID: any }) => g.GID);
-          projects = (allProjects || []).filter((p: Project) => userGroupIds.includes(p.GID));
+          nextProjects = (allProjects || []).filter((p: Project) => userGroupIds.includes(p.GID));
         } else {
-          projects = await getProjectListByUser();
+          nextProjects = await getProjectListByUser();
         }
 
         if (cancelled) return;
-        cleanup = subscribeToNamespaces([
-          ...projects.map((p) => `proj-${p.PID}-${username}`),
-          ...Object.keys(podsData),
-        ]);
+        setProjects(nextProjects);
       } catch (err) {
         console.error('Namespace connection failed:', err);
       }
     };
 
-    connectUserNamespaces();
+    loadUserProjects();
     return () => {
       cancelled = true;
-      if (cleanup) cleanup();
     };
-  }, [subscribeToNamespaces, podsData]);
+  }, [username]);
+
+  const subscribedNamespaces = useMemo(
+    () => [
+      ...projects.map((p) => `proj-${p.PID}-${username}`),
+      ...Object.keys(podsData),
+    ],
+    [podsData, projects, username],
+  );
+
+  useNamespaceSubscriptions(subscribedNamespaces);
 
   // Process WebSocket Messages
   // Rebuild state from messages (Source of Truth) to correctly handle additions, updates, and deletions

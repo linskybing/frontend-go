@@ -1,7 +1,10 @@
 # Project TODOs
 
-## src/core/context/NotificationProvider.tsx
+## Pending
 
-- Line 25: TODO: Send update to backend to mark as read
-- Line 30: TODO: Send update to backend to mark all as read
-- Line 35: TODO: Send update to backend to clear all notifications
+- Switch job submission flow to `POST /api/jobs/submit` once backend validation and workflow submission are finalized.
+- Add UI messaging for workflow submission availability (backend still pending).
+
+## Completed
+
+- Notification actions now call backend APIs (mark as read, mark all as read, clear all).

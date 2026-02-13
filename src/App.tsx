@@ -30,6 +30,8 @@ import { StoragePage, BrowserPage, TerminalWrapper } from './features/storage/pa
 
 // Monitoring Pages
 import { PodTables, JobsLivePage } from './features/monitoring/pages';
+import WorkflowListPage from './features/workflows/pages/WorkflowListPage';
+import WorkflowDetailPage from './features/workflows/pages/WorkflowDetailPage';
 import ProfileSettingsPage from './features/settings/pages/ProfileSettingsPage';
 
 // Dashboard
@@ -103,6 +105,8 @@ export default function App() {
                   <Route path="/projects/:id/jobs" element={<Navigate to="/jobs" replace />} />
                   <Route path="/image-requests" element={<UserImageRequests />} />
                   <Route path="/jobs" element={<JobsLivePage />} />
+                  <Route path="/workflows" element={<WorkflowListPage />} />
+                  <Route path="/workflows/:name" element={<WorkflowDetailPage />} />
                   <Route path="/my-forms" element={<UserFormDashboard />} />
                   <Route path="/pod-tables" element={<PodTables />} />
                   <Route path="/settings" element={<ProfileSettingsPage />} />

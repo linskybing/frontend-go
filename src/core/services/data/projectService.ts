@@ -6,7 +6,7 @@ import {
   PROJECT_RESOURCES_URL,
 } from '@/core/config/url';
 import { MessageResponse } from '@/core/response/response';
-import { Project } from '@/core/interfaces/project';
+import { Project, ScheduleWindow } from '@/core/interfaces/project';
 import { ConfigFile } from '@/core/interfaces/configFile';
 import { Resource } from '@/core/interfaces/resource';
 import { fetchWithAuth } from '@/shared/utils/api';
@@ -57,21 +57,21 @@ export interface CreateProjectDTO {
   gpu_quota?: number;
   gpu_access?: string;
   mps_memory?: number;
+  max_concurrent_jobs_per_user?: number;
+  max_queued_jobs_per_user?: number;
+  max_job_runtime_seconds?: number;
+  max_project_users?: number;
+  schedule_windows?: ScheduleWindow[];
 }
 
 export const createProject = async (input: CreateProjectDTO): Promise<Project> => {
-  const formData = new FormData();
-  formData.append('project_name', input.project_name);
-  formData.append('g_id', input.g_id);
-  if (input.description) formData.append('description', input.description);
-  if (input.gpu_quota !== undefined) formData.append('gpu_quota', input.gpu_quota.toString());
-  if (input.gpu_access) formData.append('gpu_access', input.gpu_access);
-  if (input.mps_memory !== undefined) formData.append('mps_memory', input.mps_memory.toString());
-
   try {
     const response = await fetchWithAuth(PROJECTS_URL, {
       method: 'POST',
-      body: formData,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(input),
     });
     return extractData<Project>(response);
   } catch (error: unknown) {
@@ -97,21 +97,21 @@ export interface UpdateProjectInput {
   gpu_quota?: number;
   gpu_access?: string;
   mps_memory?: number;
+  max_concurrent_jobs_per_user?: number;
+  max_queued_jobs_per_user?: number;
+  max_job_runtime_seconds?: number;
+  max_project_users?: number;
+  schedule_windows?: ScheduleWindow[];
 }
 
 export const updateProject = async (id: string, input: UpdateProjectInput): Promise<Project> => {
-  const formData = new FormData();
-  if (input.project_name) formData.append('project_name', input.project_name);
-  if (input.description) formData.append('description', input.description);
-  if (input.g_id) formData.append('g_id', input.g_id);
-  if (input.gpu_quota !== undefined) formData.append('gpu_quota', input.gpu_quota.toString());
-  if (input.gpu_access) formData.append('gpu_access', input.gpu_access);
-  if (input.mps_memory !== undefined) formData.append('mps_memory', input.mps_memory.toString());
-
   try {
     const response = await fetchWithAuth(PROJECT_BY_ID_URL(id), {
       method: 'PUT',
-      body: formData,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(input),
     });
     return extractData<Project>(response);
   } catch (error: unknown) {

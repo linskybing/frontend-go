@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { JOBS_URL } from '@/core/config/url';
+import { JOB_SUBMIT_URL } from '@/core/config/url';
 import { submitJob } from './jobSubmitService';
 import { fetchWithAuth } from '@/shared/utils/api';
 
@@ -12,16 +12,16 @@ describe('jobSubmitService', () => {
     vi.resetAllMocks();
   });
 
-  it('posts job submissions to the configured URL with JSON payload', async () => {
+  it('posts job submissions to the configured submit URL with JSON payload', async () => {
     const mockFetch = fetchWithAuth as unknown as ReturnType<typeof vi.fn>;
     mockFetch.mockResolvedValue({});
 
-    await submitJob({ name: 'demo', image: 'img', namespace: 'ns', priority: 'low' });
+    await submitJob({ project_id: 'proj-1', config_file_id: 'cf-1', submit_type: 'job' });
 
-    expect(fetchWithAuth).toHaveBeenCalledWith(JOBS_URL, {
+    expect(fetchWithAuth).toHaveBeenCalledWith(JOB_SUBMIT_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: 'demo', image: 'img', namespace: 'ns', priority: 'low' }),
+      body: JSON.stringify({ project_id: 'proj-1', config_file_id: 'cf-1', submit_type: 'job' }),
     });
   });
 });

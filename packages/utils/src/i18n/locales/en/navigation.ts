@@ -18,6 +18,7 @@ export const navigation = {
     overview: 'Overview',
     menu: 'Menu',
     jobs: 'Jobs',
+    workflows: 'Workflows',
     ecommerce: 'E-commerce',
     manageImages: 'Manage Images',
     imageRequests: 'Image Requests',

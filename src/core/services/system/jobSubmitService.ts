@@ -1,26 +1,32 @@
-import { JOBS_URL } from '@/core/config/url';
+import { JOB_SUBMIT_URL } from '@/core/config/url';
 import { fetchWithAuth } from '@/shared/utils/api';
 
+type ApiResponse<T> = { code?: number; message?: string; data?: T } | T;
+
+const extractData = <T>(response: ApiResponse<T>): T => {
+  if (response && typeof response === 'object' && 'data' in response) {
+    return (response as { data?: T }).data as T;
+  }
+  return response as T;
+};
+
 export interface SubmitJobRequest {
-  name: string;
-  image: string;
-  namespace: string;
-  priority?: string;
-  job_type?: string;
-  command?: string[];
-  args?: string[];
-  gpu_count?: number;
-  gpu_type?: string;
-  cpu_request?: string;
-  memory_request?: string;
-  working_dir?: string;
-  env_vars?: Record<string, string>;
+  project_id: string;
+  config_file_id: string;
+  submit_type?: 'job' | 'workflow';
+  queue_name?: string;
+  priority?: number;
 }
 
-export const submitJob = async (data: SubmitJobRequest): Promise<void> => {
-  await fetchWithAuth(JOBS_URL, {
+export interface SubmitJobResponse {
+  job_id: string;
+}
+
+export const submitJob = async (data: SubmitJobRequest): Promise<SubmitJobResponse> => {
+  const response = await fetchWithAuth(JOB_SUBMIT_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
+  return extractData<SubmitJobResponse>(response as ApiResponse<SubmitJobResponse>);
 };

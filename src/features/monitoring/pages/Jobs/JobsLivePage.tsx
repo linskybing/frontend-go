@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useGlobalWebSocket } from '@/core/context/hooks/useGlobalWebSocket';
+import { useNamespaceSubscriptions } from '@/core/context/hooks/useNamespaceSubscriptions';
 import { PageLayout } from '@nthucscc/ui';
 import { SearchInput } from '@nthucscc/components-shared';
 import { LuActivity } from 'react-icons/lu';
@@ -11,10 +12,8 @@ import { getProjectListByUser, getProjects } from '@/core/services/projectServic
 import { getGroupsByUser } from '@/core/services/userGroupService';
 import { Project } from '@/core/interfaces/project';
 import { ConfigFile } from '@/core/interfaces/configFile';
-import {
-  createInstance,
-  getConfigFilesByProjectId,
-} from '@/core/services/resource/configFileService';
+import { getConfigFilesByProjectId } from '@/core/services/resource/configFileService';
+import { submitJob } from '@/core/services/jobService';
 
 // Local imports
 import { InferredJob, JobPodMap, JobPod } from './types';
@@ -45,7 +44,7 @@ const JobsLivePage: React.FC = () => {
   });
 
   // Global WebSocket Context
-  const { messages, subscribeToNamespaces, subscribeToPodLogs } = useGlobalWebSocket();
+  const { messages, subscribeToPodLogs } = useGlobalWebSocket();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const { t } = useTranslation();
@@ -53,7 +52,6 @@ const JobsLivePage: React.FC = () => {
 
   // Namespace connection logic
   useEffect(() => {
-    let cleanup: (() => void) | undefined;
     let cancelled = false;
 
     const loadUserProjects = async () => {
@@ -80,8 +78,6 @@ const JobsLivePage: React.FC = () => {
         if (!selectedProjectId && nextProjects.length > 0) {
           setSelectedProjectId(nextProjects[0].PID);
         }
-
-        cleanup = subscribeToNamespaces(nextProjects.map((p) => `proj-${p.PID}-${username}`));
       } catch (err) {
         console.error('Job namespace connection failed:', err);
       }
@@ -90,9 +86,15 @@ const JobsLivePage: React.FC = () => {
     loadUserProjects();
     return () => {
       cancelled = true;
-      if (cleanup) cleanup();
     };
-  }, [subscribeToNamespaces, selectedProjectId, username]);
+  }, [username]);
+
+  const subscribedNamespaces = useMemo(
+    () => projects.map((p) => `proj-${p.PID}-${username}`),
+    [projects, username],
+  );
+
+  useNamespaceSubscriptions(subscribedNamespaces);
 
   useEffect(() => {
     if (!selectedProjectId) {
@@ -285,7 +287,11 @@ const JobsLivePage: React.FC = () => {
 
     setSubmitState({ loading: true, error: null, success: null });
     try {
-      await createInstance(selectedConfigId);
+      await submitJob({
+        project_id: selectedProjectId,
+        config_file_id: selectedConfigId,
+        submit_type: submitType,
+      });
       setSubmitState({
         loading: false,
         error: null,

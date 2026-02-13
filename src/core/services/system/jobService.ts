@@ -1,4 +1,4 @@
-import { JOBS_URL, JOB_BY_ID_URL } from '@/core/config/url';
+import { JOBS_URL, JOB_BY_ID_URL, JOB_SUBMIT_URL } from '@/core/config/url';
 import { fetchWithAuth } from '@/shared/utils/api';
 
 type ApiResponse<T> = { code?: number; message?: string; data?: T };
@@ -26,6 +26,18 @@ export interface Job {
   CompletedAt: string | null;
 }
 
+export interface SubmitJobRequest {
+  project_id: string;
+  config_file_id: string;
+  submit_type?: 'job' | 'workflow';
+  queue_name?: string;
+  priority?: number;
+}
+
+export interface SubmitJobResponse {
+  job_id: string;
+}
+
 export const getJobs = async (): Promise<Job[]> => {
   try {
     const response = await fetchWithAuth(JOBS_URL);
@@ -42,6 +54,21 @@ export const getJob = async (id: string): Promise<Job> => {
     return extractData<Job>(response);
   } catch (error: unknown) {
     throw new Error(error instanceof Error ? error.message : 'Failed to fetch job.');
+  }
+};
+
+export const submitJob = async (payload: SubmitJobRequest): Promise<SubmitJobResponse> => {
+  try {
+    const response = await fetchWithAuth(JOB_SUBMIT_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    return extractData<SubmitJobResponse>(response);
+  } catch (error: unknown) {
+    throw new Error(error instanceof Error ? error.message : 'Failed to submit job.');
   }
 };
 

@@ -8,7 +8,7 @@ NC='\033[0m' # No Color
 IMAGE_NAME="frontend-go"
 PROJECT="library"
 IMAGE_TAG="${1:-latest}"
-REGISTRY="${2:-10.121.124.21:30003}"
+REGISTRY="${2:-${HARBOR_REGISTRY:-localhost:5000}}"
 FULL_IMAGE="${REGISTRY}/${PROJECT}/${IMAGE_NAME}:${IMAGE_TAG}"
 
 echo -e "${YELLOW}=== Frontend Build & Deploy ===${NC}"

@@ -1,26 +1,24 @@
 import type { FormEvent } from 'react';
-import { AllowedImage } from '@/core/services/imageService';
 import JobApplyFooter from './JobApplyFooter';
+import type { Project } from '@/core/interfaces/project';
+import type { ConfigFile } from '@/core/interfaces/configFile';
 
 type Props = {
-  name: string;
-  setName: (v: string) => void;
-  image: string;
-  setImage: (v: string) => void;
-  namespace: string;
-  setNamespace: (v: string) => void;
-  priority: string;
-  setPriority: (v: string) => void;
-  cpu: string;
-  setCpu: (v: string) => void;
-  memory: string;
-  setMemory: (v: string) => void;
-  gpuCount: number;
-  setGpuCount: (v: number) => void;
-  command: string;
-  setCommand: (v: string) => void;
-  allowedImages: AllowedImage[];
-  loadingImages: boolean;
+  projectId: string;
+  setProjectId: (v: string) => void;
+  configFileId: string;
+  setConfigFileId: (v: string) => void;
+  submitType: 'job' | 'workflow';
+  setSubmitType: (v: 'job' | 'workflow') => void;
+  queueName: string;
+  setQueueName: (v: string) => void;
+  priority: number;
+  setPriority: (v: number) => void;
+  projects: Project[];
+  projectsLoading: boolean;
+  configFiles: ConfigFile[];
+  configFilesLoading: boolean;
+  configFilesError: string | null;
   loading: boolean;
   error: string | null;
   success: string | null;
@@ -29,24 +27,21 @@ type Props = {
 };
 
 export default function JobApplyForm({
-  name,
-  setName,
-  image,
-  setImage,
-  namespace,
-  setNamespace,
+  projectId,
+  setProjectId,
+  configFileId,
+  setConfigFileId,
+  submitType,
+  setSubmitType,
+  queueName,
+  setQueueName,
   priority,
   setPriority,
-  cpu,
-  setCpu,
-  memory,
-  setMemory,
-  gpuCount,
-  setGpuCount,
-  command,
-  setCommand,
-  allowedImages,
-  loadingImages,
+  projects,
+  projectsLoading,
+  configFiles,
+  configFilesLoading,
+  configFilesError,
   loading,
   error,
   success,
@@ -78,7 +73,6 @@ export default function JobApplyForm({
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Section: Basic Info */}
         <div>
           <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-4 flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-violet-500"></span>
@@ -87,188 +81,109 @@ export default function JobApplyForm({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="col-span-full md:col-span-1">
               <label className="block text-sm font-medium mb-1.5 text-gray-700 dark:text-gray-300">
-                Job Name <span className="text-red-500">*</span>
+                Project <span className="text-red-500">*</span>
               </label>
-              <input
+              <select
                 className="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-shadow sm:text-sm"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="my-job-123"
+                value={projectId}
+                onChange={(e) => setProjectId(e.target.value)}
+                disabled={projectsLoading || projects.length === 0}
                 required
-              />
+              >
+                {projectsLoading && <option value="">Loading projects...</option>}
+                {!projectsLoading && projects.length === 0 && <option value="">No projects</option>}
+                {projects.map((project) => (
+                  <option key={project.PID} value={project.PID}>
+                    {project.ProjectName}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="col-span-full md:col-span-1">
               <label className="block text-sm font-medium mb-1.5 text-gray-700 dark:text-gray-300">
-                Namespace <span className="text-red-500">*</span>
+                Config File <span className="text-red-500">*</span>
               </label>
-              <input
+              <select
                 className="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-shadow sm:text-sm"
-                value={namespace}
-                onChange={(e) => setNamespace(e.target.value)}
+                value={configFileId}
+                onChange={(e) => setConfigFileId(e.target.value)}
+                disabled={configFilesLoading || configFiles.length === 0}
                 required
-              />
+              >
+                {configFilesLoading && <option value="">Loading templates...</option>}
+                {!configFilesLoading && configFiles.length === 0 && (
+                  <option value="">No templates available</option>
+                )}
+                {configFiles.map((cf) => (
+                  <option key={cf.CFID} value={cf.CFID}>
+                    {cf.Filename}
+                  </option>
+                ))}
+              </select>
             </div>
+
+            {configFilesError && (
+              <div className="col-span-full rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600">
+                {configFilesError}
+              </div>
+            )}
 
             <div className="col-span-full">
               <label className="block text-sm font-medium mb-1.5 text-gray-700 dark:text-gray-300">
-                Container Image <span className="text-red-500">*</span>
+                Submit Type
               </label>
-              {loadingImages ? (
-                <div className="animate-pulse h-10 bg-gray-100 dark:bg-gray-800 rounded-md"></div>
-              ) : allowedImages.length > 0 ? (
-                <div className="relative">
-                  <select
-                    className="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-shadow appearance-none sm:text-sm"
-                    value={image}
-                    onChange={(e) => setImage(e.target.value)}
-                    required
-                  >
-                    <option value="">Select an image...</option>
-                    {allowedImages.map((img) => (
-                      <option key={img.ID} value={`${img.Name}:${img.Tag}`}>
-                        {img.Name}:{img.Tag}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
-                  </div>
-                </div>
-              ) : (
-                <div>
-                  <input
-                    className="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-violet-500 focus:border-transparent"
-                    value={image}
-                    onChange={(e) => setImage(e.target.value)}
-                    placeholder="e.g., ubuntu:22.04"
-                    required
-                  />
-                  <p className="text-xs text-orange-500 mt-1 flex items-center gap-1">
-                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                      />
-                    </svg>
-                    Using custom image (not verified)
-                  </p>
-                </div>
-              )}
+              <select
+                className="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-shadow sm:text-sm"
+                value={submitType}
+                onChange={(e) => setSubmitType(e.target.value as 'job' | 'workflow')}
+              >
+                <option value="job">Job</option>
+                <option value="workflow">Workflow</option>
+              </select>
             </div>
           </div>
         </div>
 
         <hr className="border-gray-200 dark:border-gray-700" />
 
-        {/* Section: Resources */}
         <div>
           <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-4 flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-accent-500"></span>
-            Resource Allocation
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1.5 text-gray-700 dark:text-gray-300">
-                CPU Request
-              </label>
-              <input
-                className="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-violet-500 focus:border-transparent sm:text-sm"
-                value={cpu}
-                onChange={(e) => setCpu(e.target.value)}
-                placeholder="e.g. 500m, 1, 2"
-              />
-              <p className="text-xs text-gray-500 mt-1">1000m = 1 Core</p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1.5 text-gray-700 dark:text-gray-300">
-                Memory Limit
-              </label>
-              <input
-                className="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-violet-500 focus:border-transparent sm:text-sm"
-                value={memory}
-                onChange={(e) => setMemory(e.target.value)}
-                placeholder="e.g. 512Mi, 4Gi"
-              />
-              <p className="text-xs text-gray-500 mt-1">Mi = Megabyte</p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1.5 text-gray-700 dark:text-gray-300">
-                GPU Count
-              </label>
-              <div className="relative">
-                <input
-                  type="number"
-                  min="0"
-                  className="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-violet-500 focus:border-transparent sm:text-sm"
-                  value={gpuCount}
-                  onChange={(e) => setGpuCount(parseInt(e.target.value) || 0)}
-                />
-                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-sm text-gray-500">
-                  Cards
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <hr className="border-gray-200 dark:border-gray-700" />
-
-        {/* Section: Execution */}
-        <div>
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-            Execution Details
+            Scheduling
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1.5 text-gray-700 dark:text-gray-300">
-                Priority Class
+                Queue Name
               </label>
-              <select
+              <input
+                className="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-violet-500 focus:border-transparent sm:text-sm"
+                value={queueName}
+                onChange={(e) => setQueueName(e.target.value)}
+                placeholder="default-batch"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1.5 text-gray-700 dark:text-gray-300">
+                Priority
+              </label>
+              <input
+                type="number"
+                min="0"
                 className="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-violet-500 focus:border-transparent sm:text-sm"
                 value={priority}
-                onChange={(e) => setPriority(e.target.value)}
-              >
-                <option value="normal">Normal Priority</option>
-                <option value="high">High Priority (Urgent)</option>
-              </select>
-            </div>
-            <div className="col-span-full">
-              <label className="block text-sm font-medium mb-1.5 text-gray-700 dark:text-gray-300">
-                Start Command <span className="text-gray-400 font-normal">(Optional)</span>
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <span className="text-gray-500 font-mono">$</span>
-                </div>
-                <input
-                  className="w-full rounded-md border border-gray-300 dark:border-gray-600 pl-7 pr-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-mono text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent"
-                  value={command}
-                  onChange={(e) => setCommand(e.target.value)}
-                  placeholder="python train.py --epochs 100"
-                />
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                Overrides container default command. Arguments separated by spaces.
-              </p>
+                onChange={(e) => setPriority(Number(e.target.value) || 0)}
+              />
             </div>
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="pt-4 flex items-center justify-end gap-3 sticky bottom-0 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 mt-6">
-          <JobApplyFooter loading={loading} onClose={onClose} />
-        </div>
+        <JobApplyFooter loading={loading} onClose={onClose} />
+      </form>
+    </div>
+  );
+}
       </form>
     </div>
   );

@@ -110,9 +110,15 @@ const parseResourceDoc = (docObj: any, idx: number): ResourceItem => {
       mounts: (() => {
         const volumes = templateSpec.volumes || [];
         const vm = c.volumeMounts || [];
+        const volumeByName = new Map<string, any>();
+        volumes.forEach((v: any) => {
+          if (v?.name) {
+            volumeByName.set(String(v.name), v);
+          }
+        });
         const grouped: Record<string, any> = {};
         vm.forEach((m: any, mi: number) => {
-          const volumeDef = volumes.find((v: any) => v.name === m.name);
+          const volumeDef = volumeByName.get(String(m.name));
 
           let mountType: 'group-pvc' | 'user-storage' | 'emptyDir' | 'configMap' = 'group-pvc';
           let pvcName = m.name || '';

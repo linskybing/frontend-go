@@ -10,9 +10,9 @@ import {
   createConfigFile,
   updateConfigFile,
   deleteConfigFile,
-  createInstance,
   deleteInstance,
 } from '@/core/services/configFileService';
+import { submitJob } from '@/core/services/jobService';
 
 // Interfaces
 import { Project } from '@/core/interfaces/project';
@@ -127,7 +127,11 @@ const ConfigFilesTab: React.FC<ConfigFilesTabProps> = ({ project }) => {
   const handleCreateInstance = async (id: string) => {
     setActionLoading(true);
     try {
-      await createInstance(id);
+      await submitJob({
+        project_id: projectId,
+        config_file_id: id,
+        submit_type: 'job',
+      });
       toast.success(t('project.detail.instanceCreateSent'));
     } catch (err) {
       toast.error(getErrorMessage(err));

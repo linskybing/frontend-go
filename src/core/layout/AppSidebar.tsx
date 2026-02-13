@@ -14,6 +14,7 @@ import {
   CircleStackIcon,
   PhotoIcon,
   ArrowPathIcon,
+  RectangleStackIcon,
 } from '@heroicons/react/24/outline';
 import { useSidebar } from '../context/hooks/useSidebar';
 import { useAuth } from '../context/useAuth'; // New import
@@ -32,6 +33,7 @@ const navItems: NavItem[] = [
   { icon: <HomeIcon className="h-5 w-5" />, name: 'sidebar.overview', path: '/' },
   { icon: <FolderIcon className="h-5 w-5" />, name: 'sidebar.projects', path: '/projects' },
   { icon: <PlayCircleIcon className="h-5 w-5" />, name: 'sidebar.jobs', path: '/jobs' },
+  { icon: <RectangleStackIcon className="h-5 w-5" />, name: 'sidebar.workflows', path: '/workflows' },
   { icon: <UserGroupIcon className="h-5 w-5" />, name: 'sidebar.groups', path: '/groups' },
   { icon: <ServerStackIcon className="h-5 w-5" />, name: 'sidebar.pods', path: '/pod-tables' },
   {

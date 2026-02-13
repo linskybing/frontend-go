@@ -37,6 +37,10 @@ export const PROJECTS_BY_USER_URL = () => `${API_BASE_URL}/projects/by-user`;
 // jobs
 export const JOBS_URL = `${API_BASE_URL}/api/jobs`;
 export const JOB_BY_ID_URL = (id: string) => `${JOBS_URL}/${id}`;
+export const JOB_SUBMIT_URL = `${JOBS_URL}/submit`;
+// workflows
+export const WORKFLOWS_URL = `${API_BASE_URL}/api/workflows`;
+export const WORKFLOW_BY_NAME_URL = (name: string) => `${WORKFLOWS_URL}/${encodeURIComponent(name)}`;
 // Pod logs websocket URL (query params: namespace, pod, container)
 export const POD_LOGS_WS_URL = (namespace: string, pod: string, container: string) =>
   `${WS_PROTOCOL}//${WS_HOST}/ws/pod-logs?namespace=${encodeURIComponent(namespace)}&pod=${encodeURIComponent(

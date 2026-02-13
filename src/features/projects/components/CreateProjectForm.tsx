@@ -21,6 +21,11 @@ interface CreateProjectFormProps {
   groupId: string;
   gpuQuota: number;
   mpsMemory: number;
+  maxConcurrentJobsPerUser: number;
+  maxQueuedJobsPerUser: number;
+  maxJobRuntimeSeconds: number;
+  maxProjectUsers: number;
+  scheduleWindows: { weekday: number; start: string; end: string }[];
   loading: boolean;
   error: string | null;
   isOpen: boolean;
@@ -29,6 +34,13 @@ interface CreateProjectFormProps {
   onDescriptionChange: (e: ChangeEvent<HTMLTextAreaElement>) => void;
   onGpuQuotaChange: (e: ChangeEvent<HTMLInputElement>) => void;
   onMpsMemoryChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  onMaxConcurrentJobsPerUserChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  onMaxQueuedJobsPerUserChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  onMaxJobRuntimeSecondsChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  onMaxProjectUsersChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  onScheduleWindowChange: (index: number, field: 'weekday' | 'start' | 'end', value: string | number) => void;
+  addScheduleWindow: () => void;
+  removeScheduleWindow: (index: number) => void;
   onGroupIdChange: (e: ChangeEvent<HTMLInputElement>) => void; // Kept for compatibility
   onSubmit: (e: FormEvent) => void;
 
@@ -44,6 +56,11 @@ const CreateProjectForm: React.FC<CreateProjectFormProps> = ({
   groupId,
   gpuQuota,
   mpsMemory,
+  maxConcurrentJobsPerUser,
+  maxQueuedJobsPerUser,
+  maxJobRuntimeSeconds,
+  maxProjectUsers,
+  scheduleWindows,
   loading,
   error,
   isOpen,
@@ -52,6 +69,13 @@ const CreateProjectForm: React.FC<CreateProjectFormProps> = ({
   onDescriptionChange,
   onGpuQuotaChange,
   onMpsMemoryChange,
+  onMaxConcurrentJobsPerUserChange,
+  onMaxQueuedJobsPerUserChange,
+  onMaxJobRuntimeSecondsChange,
+  onMaxProjectUsersChange,
+  onScheduleWindowChange,
+  addScheduleWindow,
+  removeScheduleWindow,
   onSubmit,
 
   availableGroups,
@@ -59,6 +83,15 @@ const CreateProjectForm: React.FC<CreateProjectFormProps> = ({
   onSelectedGroupChange,
 }) => {
   const { t } = useTranslation();
+  const weekdayOptions = [
+    { value: 0, label: 'Sun' },
+    { value: 1, label: 'Mon' },
+    { value: 2, label: 'Tue' },
+    { value: 3, label: 'Wed' },
+    { value: 4, label: 'Thu' },
+    { value: 5, label: 'Fri' },
+    { value: 6, label: 'Sat' },
+  ];
 
   // FIX: Defensive initialization of availableGroups
   const safeGroups = availableGroups || [];
@@ -205,6 +238,110 @@ const CreateProjectForm: React.FC<CreateProjectFormProps> = ({
                 min="0"
                 disabled={loading}
               />
+            </div>
+
+            <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-4">
+              <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                Limits
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <InputField
+                  type="number"
+                  label="Max Concurrent Jobs Per User"
+                  value={maxConcurrentJobsPerUser}
+                  onChange={onMaxConcurrentJobsPerUserChange}
+                  className="w-full"
+                  min="0"
+                  disabled={loading}
+                />
+                <InputField
+                  type="number"
+                  label="Max Queued Jobs Per User"
+                  value={maxQueuedJobsPerUser}
+                  onChange={onMaxQueuedJobsPerUserChange}
+                  className="w-full"
+                  min="0"
+                  disabled={loading}
+                />
+                <InputField
+                  type="number"
+                  label="Max Job Runtime (Seconds)"
+                  value={maxJobRuntimeSeconds}
+                  onChange={onMaxJobRuntimeSecondsChange}
+                  className="w-full"
+                  min="0"
+                  disabled={loading}
+                />
+                <InputField
+                  type="number"
+                  label="Max Project Users"
+                  value={maxProjectUsers}
+                  onChange={onMaxProjectUsersChange}
+                  className="w-full"
+                  min="0"
+                  disabled={loading}
+                />
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                  Schedule Windows
+                </div>
+                <Button
+                  type="button"
+                  onClick={addScheduleWindow}
+                  className="px-3 py-1.5 text-xs font-semibold bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+                  disabled={loading}
+                >
+                  Add Window
+                </Button>
+              </div>
+              {scheduleWindows.length === 0 ? (
+                <div className="text-xs text-gray-500">No windows set. Jobs are allowed any time.</div>
+              ) : (
+                <div className="space-y-3">
+                  {scheduleWindows.map((window, index) => (
+                    <div key={`${window.weekday}-${index}`} className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                      <select
+                        className="rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm p-2"
+                        value={window.weekday}
+                        onChange={(e) => onScheduleWindowChange(index, 'weekday', Number(e.target.value))}
+                        disabled={loading}
+                      >
+                        {weekdayOptions.map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        type="time"
+                        className="rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm p-2"
+                        value={window.start}
+                        onChange={(e) => onScheduleWindowChange(index, 'start', e.target.value)}
+                        disabled={loading}
+                      />
+                      <input
+                        type="time"
+                        className="rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm p-2"
+                        value={window.end}
+                        onChange={(e) => onScheduleWindowChange(index, 'end', e.target.value)}
+                        disabled={loading}
+                      />
+                      <Button
+                        type="button"
+                        onClick={() => removeScheduleWindow(index)}
+                        className="px-3 py-2 text-xs font-semibold bg-red-50 text-red-600 rounded-md hover:bg-red-100"
+                        disabled={loading}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <GroupSelect

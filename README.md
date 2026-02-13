@@ -20,6 +20,12 @@ npm install
 npm run dev:app   # runs the frontend app (workspace)
 ```
 
+Status and TODOs
+
+- Notifications: mark read / mark all / clear all are implemented.
+- Job submission flow should move to `POST /api/jobs/submit` once backend contract is finalized.
+- Workflow list/detail UI is implemented; workflow submission depends on backend support.
+
 References: This repository uses per-folder `REFERENCES.md` files plus a root `REFERENCES.md` index at the project root. Before editing components, check the nearest `REFERENCES.md` for implementation notes and add a short entry describing your change and rationale when you modify files.
 
 Build (production)

@@ -21,7 +21,7 @@ spec:
       - name: harbor-regcred
       containers:
       - name: frontend
-        image: 10.121.124.21:30003/library/frontend-go:latest
+        image: frontend-go:latest  # Set via: kubectl set image deployment/frontend-app frontend=REGISTRY/library/frontend-go:TAG
         imagePullPolicy: Always
         ports:
         - name: http

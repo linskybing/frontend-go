@@ -3,6 +3,7 @@ import { sanitizeK8sName, useTranslation } from '@nthucscc/utils';
 import { toast } from 'react-hot-toast';
 import { GroupPVCWithPermissions } from '@/core/interfaces/groupStorage';
 import { useGlobalWebSocket } from '@/core/context/hooks/useGlobalWebSocket';
+import { useNamespaceSubscriptions } from '@/core/context/hooks/useNamespaceSubscriptions';
 import type { ResourceMessage } from '@/core/context/ws-types';
 import {
   getMyGroupStorages,
@@ -16,14 +17,13 @@ import {
  */
 export const useGroupStorage = () => {
   const { t } = useTranslation();
-  const { messages, subscribeToNamespaces } = useGlobalWebSocket();
+  const { messages } = useGlobalWebSocket();
   const [storages, setStorages] = useState<GroupPVCWithPermissions[]>([]);
   const [loading, setLoading] = useState(true);
   const [isActionLoading, setIsActionLoading] = useState<Record<string, boolean>>({});
 
   // Fetch storages
   useEffect(() => {
-    let cleanup: (() => void) | undefined;
     let cancelled = false;
 
     const init = async () => {
@@ -31,7 +31,6 @@ export const useGroupStorage = () => {
         const data = await getMyGroupStorages();
         if (cancelled) return;
         setStorages(data || []);
-        cleanup = subscribeToNamespaces(data.map((s) => s.namespace || ''));
       } catch (err: unknown) {
         if (cancelled) return;
         const msg = err instanceof Error ? err.message : String(err);
@@ -44,9 +43,10 @@ export const useGroupStorage = () => {
     init();
     return () => {
       cancelled = true;
-      if (cleanup) cleanup();
     };
-  }, [subscribeToNamespaces, t]);
+  }, [t]);
+
+  useNamespaceSubscriptions(storages.map((s) => s.namespace || ''));
 
   // Handle actions
   const handleAction = async (storage: GroupPVCWithPermissions, action: 'start' | 'stop') => {

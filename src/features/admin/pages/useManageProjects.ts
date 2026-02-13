@@ -50,6 +50,11 @@ export function useManageProjects() {
         gpuQuota: project.GPUQuota || 0,
         gpuAccess: project.GPUAccess ? project.GPUAccess.split(',') : ['shared'],
         mpsMemory: project.MPSMemory || 0,
+        maxConcurrentJobsPerUser: project.MaxConcurrentJobsPerUser || 0,
+        maxQueuedJobsPerUser: project.MaxQueuedJobsPerUser || 0,
+        maxJobRuntimeSeconds: project.MaxJobRuntimeSeconds || 0,
+        maxProjectUsers: project.MaxProjectUsers || 0,
+        scheduleWindows: project.ScheduleWindows || [],
       });
       setIsEditModalOpen(true);
     }
@@ -63,6 +68,11 @@ export function useManageProjects() {
       gpuQuota: project.GPUQuota || 0,
       gpuAccess: project.GPUAccess ? project.GPUAccess.split(',') : ['shared'],
       mpsMemory: project.MPSMemory || 0,
+      maxConcurrentJobsPerUser: project.MaxConcurrentJobsPerUser || 0,
+      maxQueuedJobsPerUser: project.MaxQueuedJobsPerUser || 0,
+      maxJobRuntimeSeconds: project.MaxJobRuntimeSeconds || 0,
+      maxProjectUsers: project.MaxProjectUsers || 0,
+      scheduleWindows: project.ScheduleWindows || [],
     });
     setIsEditModalOpen(true);
   };
@@ -84,6 +94,11 @@ export function useManageProjects() {
       gpu_quota: formState.gpuQuota,
       gpu_access: formState.gpuAccess.join(','),
       mps_memory: formState.mpsMemory,
+      max_concurrent_jobs_per_user: formState.maxConcurrentJobsPerUser,
+      max_queued_jobs_per_user: formState.maxQueuedJobsPerUser,
+      max_job_runtime_seconds: formState.maxJobRuntimeSeconds,
+      max_project_users: formState.maxProjectUsers,
+      schedule_windows: formState.scheduleWindows,
     };
 
     try {
@@ -168,6 +183,11 @@ export function useManageProjects() {
       gpu_quota: formState.gpuQuota,
       gpu_access: formState.gpuAccess.join(','),
       mps_memory: formState.mpsMemory,
+      max_concurrent_jobs_per_user: formState.maxConcurrentJobsPerUser,
+      max_queued_jobs_per_user: formState.maxQueuedJobsPerUser,
+      max_job_runtime_seconds: formState.maxJobRuntimeSeconds,
+      max_project_users: formState.maxProjectUsers,
+      schedule_windows: formState.scheduleWindows,
     };
 
     try {
